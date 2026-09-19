@@ -61,5 +61,5 @@ and `pnpm e2e` (Playwright, real browser).
 - [x] Full lifecycle onchain: attest → pending → execute → reconcile.
 - [x] Real txs in demo: 21 across six steps, all verifiable.
 - [x] Objective divergence: naive seized, aware HF 2.00.
-- [x] 59 forge + 41 vitest + 13 acceptance + 3 e2e checks green.
+- [x] 61 forge + 41 vitest + 13 acceptance + 3 e2e checks green.
 - [x] Docker + CI + docs + submission materials.

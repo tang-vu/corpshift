@@ -16,7 +16,7 @@ packages/
       mocks/                    MockStockToken, MockUSDG, MockPriceOracle
       demo/                     NaiveVault, CorpShiftAwareVault
     script/Deploy.s.sol         writes deployments/<chainId>.json
-    test/                       7 suites, 59 tests (unit/fuzz/integration/invariant)
+    test/                       7 suites, 61 tests (unit/fuzz/integration/invariant)
 
   core/               canonical model — types, zod schema, canonicalize(),
                       EIP-712 encode (digest pinned vs Solidity), rhj normalizer,

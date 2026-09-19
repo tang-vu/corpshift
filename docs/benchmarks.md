@@ -54,7 +54,7 @@ indexer's `BEGIN IMMEDIATE` batches on the same file.
 
 | Suite | Time |
 |---|---|
-| `forge test` (59) | ~6s |
+| `forge test` (61) | ~6s |
 | `pnpm test` (41 vitest) | ~15s |
 | `pnpm demo:check` (13 assertions, real txs) | ~30s |
 | `pnpm e2e` (3 Playwright specs) | ~110s — the scenario is real transactions |

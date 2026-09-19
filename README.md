@@ -63,7 +63,7 @@ outcomes, each step a real onchain transaction you can verify.
 
 | Layer | Where | What |
 |---|---|---|
-| Contracts | `packages/contracts` | `CorpShiftRegistry`, `PolicyEngine`, ERC-8056 + ERC-20 adapters, `SettlementVault`, EIP-712 `AttestationLib`, mocks + demo vaults — **59/59 forge tests** |
+| Contracts | `packages/contracts` | `CorpShiftRegistry`, `PolicyEngine`, ERC-8056 + ERC-20 adapters, `SettlementVault`, EIP-712 `AttestationLib`, mocks + demo vaults — **61/61 forge tests** |
 | Canonical core | `packages/core` | `corpshift.action.v1` zod schema, canonicalization + action-id hashing, EIP-712 encoding (digest verified byte-for-byte against Solidity), Robinhood `/rhj` normalizer |
 | SDK | `packages/sdk` | `CorpShiftClient` — typed reads, policy checks, normalized exposure, attestation signing + registry writes |
 | Indexer | `apps/indexer` | `fetch → normalize → attest → submit → index events → reconcile` pipeline; sources: live Robinhood API, fixture replay, mock; SQLite (`node:sqlite`, zero-dep) |
@@ -134,7 +134,7 @@ revoked-signer, and replay vectors are all revert-tested. Trust model:
 
 | Suite | Result |
 |---|---|
-| `forge test` | **59/59** — unit, fuzz, integration, handler-based invariants (48 runs / 576 calls / 0 reverts) |
+| `forge test` | **61/61** — unit, fuzz, integration, handler-based invariants (48 runs / 576 calls / 0 reverts) |
 | `pnpm test` | **41/41** vitest across core, shared, sdk, indexer, api |
 | `pnpm demo:check` | **13/13** — full scenario on live anvil: seeded, attested, probed, executed, reconciled, naive seized, aware HF 2.00 |
 | `pnpm e2e` | **3/3** Playwright — the scenario driven through the real browser UI |

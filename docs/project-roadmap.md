@@ -13,7 +13,7 @@
 - [x] Protocol Lab UI + Playwright e2e + `demo:check` acceptance
 - [x] Docker + compose + GitHub Actions CI
 - [x] Docs: architecture, threat model, deployment, benchmarks
-- [x] 59 forge + 41 vitest + 13 acceptance + 3 e2e — all green
+- [x] 61 forge + 41 vitest + 13 acceptance + 3 e2e — all green
 
 ## Next (post-hackathon, ordered)
 

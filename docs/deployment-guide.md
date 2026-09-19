@@ -69,6 +69,10 @@ Notes:
 - `DEMO_MODE` **defaults to true** — pass `DEMO_MODE=false` for the
   production surface (registry, policy engine, adapters, settlement vault —
   no mocks, no demo vaults).
+- **Verified 2026-09-19:** the script simulates cleanly against the live
+  testnet RPC (`forge script … --rpc-url https://rpc.testnet.chain.robinhood.com`
+  without `--broadcast`) — ~9.85M gas, ~0.0002 ETH. Broadcasting just needs a
+  faucet-funded key.
 - The deployer becomes operator/attester initially; rotate attester keys via
   `setAttester` and transfer ownership for production.
 - Stock Token addresses come from the live Robinhood API

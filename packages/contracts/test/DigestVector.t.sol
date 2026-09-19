@@ -15,7 +15,7 @@ import {AttestationLib} from "../src/libraries/AttestationLib.sol";
 contract DigestVectorTest is CorpShiftTest {
     // Fixed verification context — the TS test uses identical values.
     address internal constant VECTOR_CONTRACT = 0xc0f5c0f5C0F5c0f5C0f5c0F5C0F5c0f5C0f5c0F5;
-    uint256 internal constant VECTOR_CHAIN = 46630;
+    uint256 internal constant VECTOR_CHAIN = 46_630;
 
     function _vectorPayload() internal pure returns (CorpShiftTypes.ActionPayload memory p) {
         bytes memory params = abi.encode(uint256(4), uint256(1), uint256(4e18));
