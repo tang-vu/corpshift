@@ -1,0 +1,13 @@
+node_modules/
+dist/
+out/
+cache/
+coverage/
+pnpm-lock.yaml
+*.sol
+*.md
+broadcast/
+deployments/
+test-results/
+playwright-report/
+docs/research/raw/

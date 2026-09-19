@@ -1,0 +1,39 @@
+node_modules/
+dist/
+out/
+cache/
+coverage/
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+*.tsbuildinfo
+
+# Foundry
+packages/contracts/out/
+packages/contracts/cache/
+packages/contracts/broadcast/
+
+# Deployments artifacts are committed EXCEPT broadcast dry-runs
+broadcast/
+
+# SQLite demo data
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Logs
+*.log
+logs/
+
+# OS / editor
+.idea/
+.vscode/

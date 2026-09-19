@@ -1,0 +1,33 @@
+{
+  "name": "corpshift",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The corporate-action runtime for onchain finance.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@11.24.0",
+  "scripts": {
+    "build": "pnpm -r --sort build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "forge:build": "forge build",
+    "forge:test": "forge test",
+    "demo": "node scripts/demo.mjs",
+    "demo:check": "node scripts/demo-check.mjs",
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "eslint": "^9.35.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.43.0",
+    "vitest": "^3.2.4"
+  }
+}
