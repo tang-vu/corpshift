@@ -30,10 +30,7 @@ describe("encodeParams", () => {
       denominator: 1n,
       expectedMultiplier: 4_000_000_000_000_000_000n,
     });
-    const [num, den, exp] = decodeAbiParameters(
-      parseAbiParameters("uint256,uint256,uint256"),
-      enc,
-    );
+    const [num, den, exp] = decodeAbiParameters(parseAbiParameters("uint256,uint256,uint256"), enc);
     expect([num, den, exp]).toEqual([4n, 1n, 4_000_000_000_000_000_000n]);
   });
 

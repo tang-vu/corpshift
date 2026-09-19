@@ -45,9 +45,7 @@ export function loadConfig(envOverrides: Record<string, string | undefined> = {}
     envOverrides[n] !== undefined ? (envOverrides[n] as string) : env(n, f);
 
   const chainId = Number(get("CORPSHIFT_CHAIN_ID", "31337"));
-  const manifestPath = repoPath(
-    get("CORPSHIFT_MANIFEST", `deployments/${chainId}.json`),
-  );
+  const manifestPath = repoPath(get("CORPSHIFT_MANIFEST", `deployments/${chainId}.json`));
   const manifest = parseManifest(JSON.parse(readFileSync(manifestPath, "utf8")));
 
   const sourceMode = get("CORPSHIFT_SOURCE", "fixture") as SourceMode;
@@ -68,14 +66,16 @@ export function loadConfig(envOverrides: Record<string, string | undefined> = {}
     })(),
     sourceMode,
     rhApiBase: get("CORPSHIFT_RH_API", "https://api.robinhood.com/rhj"),
-    paymentToken: (get("CORPSHIFT_PAYMENT_TOKEN", manifest.mockUSDG ?? "") ||
-      undefined) as Address | undefined,
+    paymentToken: (get("CORPSHIFT_PAYMENT_TOKEN", manifest.mockUSDG ?? "") || undefined) as
+      Address | undefined,
     paymentTokenDecimals: Number(get("CORPSHIFT_PAYMENT_DECIMALS", "6")),
     pollMs: Number(get("CORPSHIFT_POLL_MS", "15000")),
     fromBlock: BigInt(get("CORPSHIFT_FROM_BLOCK", "0")),
     dryRun: get("CORPSHIFT_DRY_RUN", "false") === "true",
     symbolFilter: get("CORPSHIFT_SYMBOLS", "")
-      ? get("CORPSHIFT_SYMBOLS")!.split(",").map((s) => s.trim().toUpperCase())
+      ? get("CORPSHIFT_SYMBOLS")!
+          .split(",")
+          .map((s) => s.trim().toUpperCase())
       : undefined,
   };
 }

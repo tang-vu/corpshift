@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { encodeAbiParameters, keccak256, stringToHex, type Hex } from "viem";
-import { attestDigest, attestationDomain } from "../src/eip712.js";
+import { attestDigest } from "../src/eip712.js";
 import { SCHEMA_V1_HASH, eventIdOf, sourceHashOf } from "../src/canonicalize.js";
 import type { ActionPayload } from "../src/types.js";
 

@@ -23,15 +23,9 @@ const CTX: NormalizeContext = {
 
 describe("mapRobinhoodType", () => {
   it("maps documented enum values", () => {
-    expect(mapRobinhoodType("CORPORATE_ACTION_TYPE_FORWARD_SPLIT")).toBe(
-      ActionType.ForwardSplit,
-    );
-    expect(mapRobinhoodType("CORPORATE_ACTION_TYPE_CASH_DIVIDEND")).toBe(
-      ActionType.CashDividend,
-    );
-    expect(mapRobinhoodType("CORPORATE_ACTION_TYPE_REVERSE_SPLIT")).toBe(
-      ActionType.ReverseSplit,
-    );
+    expect(mapRobinhoodType("CORPORATE_ACTION_TYPE_FORWARD_SPLIT")).toBe(ActionType.ForwardSplit);
+    expect(mapRobinhoodType("CORPORATE_ACTION_TYPE_CASH_DIVIDEND")).toBe(ActionType.CashDividend);
+    expect(mapRobinhoodType("CORPORATE_ACTION_TYPE_REVERSE_SPLIT")).toBe(ActionType.ReverseSplit);
   });
   it("maps unrecognized values to UNKNOWN — never guesses", () => {
     expect(mapRobinhoodType("CORPORATE_ACTION_TYPE_WHATEVER_NEW")).toBe(ActionType.Unknown);
@@ -84,7 +78,9 @@ describe("normalizeRobinhoodAction", () => {
       status: "CORPORATE_ACTION_STATUS_IN_PROGRESS",
       processDate: { year: 2026, month: 7, day: 2 },
       tokenSymbol: "CRWD",
-      deployments: [{ contractAddress: "0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931", chainId: 4663 }],
+      deployments: [
+        { contractAddress: "0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931", chainId: 4663 },
+      ],
       details: { forwardSplit: { numerator: "4", denominator: "1" } },
     };
     const a = normalizeRobinhoodAction(raw, CTX);
@@ -99,7 +95,9 @@ describe("normalizeRobinhoodAction", () => {
       type: "CORPORATE_ACTION_TYPE_FORWARD_SPLIT",
       status: "CORPORATE_ACTION_STATUS_IN_PROGRESS",
       processDate: { year: 2026, month: 7, day: 2 },
-      deployments: [{ contractAddress: "0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931", chainId: 4663 }],
+      deployments: [
+        { contractAddress: "0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931", chainId: 4663 },
+      ],
       details: { forwardSplit: { surpriseField: true } },
     };
     expect(() => normalizeRobinhoodAction(raw, CTX)).toThrow(UnnormalizableActionError);
@@ -112,7 +110,15 @@ describe("normalizeRobinhoodActions", () => {
       [
         GLW_CASH_DIVIDEND_RAW,
         { ...TSM_CASH_DIVIDEND_RAW, deployments: [] }, // no deployment → failure
-        { id: "0x" + "00".repeat(32), type: "BOGUS", status: "X", processDate: { year: 2026, month: 1, day: 1 }, deployments: [{ contractAddress: "0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931", chainId: 4663 }] },
+        {
+          id: "0x" + "00".repeat(32),
+          type: "BOGUS",
+          status: "X",
+          processDate: { year: 2026, month: 1, day: 1 },
+          deployments: [
+            { contractAddress: "0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931", chainId: 4663 },
+          ],
+        },
       ],
       CTX,
     );

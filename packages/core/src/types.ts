@@ -101,10 +101,7 @@ export interface GenericParams {
   raw: Hex;
 }
 export type ActionParams =
-  | SplitParams
-  | CashDividendParams
-  | MultiplierChangeParams
-  | GenericParams;
+  SplitParams | CashDividendParams | MultiplierChangeParams | GenericParams;
 
 /** The canonical, schema-validated corporate action (`corpshift.action.v1`).
  *  This is the offchain truth; `toActionPayload` derives the hashed onchain form. */

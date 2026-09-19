@@ -125,8 +125,7 @@ export const api = {
   assets: () => fetch("/v1/assets").then((r) => j<{ assets: AssetRow[] }>(r)),
   asset: (a: string) =>
     fetch(`/v1/assets/${a}`).then((r) => j<AssetRow & { actions: ActionItem[] }>(r)),
-  actions: (q = "") =>
-    fetch(`/v1/actions${q}`).then((r) => j<{ actions: ActionItem[] }>(r)),
+  actions: (q = "") => fetch(`/v1/actions${q}`).then((r) => j<{ actions: ActionItem[] }>(r)),
   action: (id: string) =>
     fetch(`/v1/actions/${id}`).then((r) => j<ActionItem & { events: EventItem[] }>(r)),
   events: (q = "") => fetch(`/v1/events${q}`).then((r) => j<{ events: EventItem[] }>(r)),
@@ -135,8 +134,6 @@ export const api = {
   exposure: (asset: string, account: string) =>
     fetch(`/v1/exposure/${asset}/${account}`).then((r) => j<Exposure>(r)),
   demoState: () => fetch("/v1/demo/state").then((r) => j<DemoState>(r)),
-  demoStep: () =>
-    fetch("/v1/demo/step", { method: "POST" }).then((r) => j<DemoStepResult>(r)),
-  demoReset: () =>
-    fetch("/v1/demo/reset", { method: "POST" }).then((r) => j<DemoStepResult>(r)),
+  demoStep: () => fetch("/v1/demo/step", { method: "POST" }).then((r) => j<DemoStepResult>(r)),
+  demoReset: () => fetch("/v1/demo/reset", { method: "POST" }).then((r) => j<DemoStepResult>(r)),
 };

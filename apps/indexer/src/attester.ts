@@ -5,11 +5,7 @@
  */
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import type { Address, Hex } from "viem";
-import {
-  attestableAction,
-  type ActionPayload,
-  type CanonicalAction,
-} from "@corpshift/core";
+import { attestableAction, type ActionPayload, type CanonicalAction } from "@corpshift/core";
 
 export interface SignedAction {
   payload: ActionPayload;

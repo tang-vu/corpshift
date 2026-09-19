@@ -35,16 +35,12 @@ function env(name: string, fallback?: string): string {
   return v;
 }
 
-export function loadConfig(
-  envOverrides: Record<string, string | undefined> = {},
-): ApiConfig {
+export function loadConfig(envOverrides: Record<string, string | undefined> = {}): ApiConfig {
   const get = (n: string, f?: string) =>
     envOverrides[n] !== undefined ? (envOverrides[n] as string) : env(n, f);
 
   const chainId = Number(get("CORPSHIFT_CHAIN_ID", "31337"));
-  const manifestPath = repoPath(
-    get("CORPSHIFT_MANIFEST", `deployments/${chainId}.json`),
-  );
+  const manifestPath = repoPath(get("CORPSHIFT_MANIFEST", `deployments/${chainId}.json`));
   const manifest = parseManifest(JSON.parse(readFileSync(manifestPath, "utf8")));
 
   const dbPath = get("CORPSHIFT_DB", `data/indexer-${chainId}.sqlite`);

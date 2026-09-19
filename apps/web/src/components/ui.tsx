@@ -12,7 +12,9 @@ export function StateBadge({ state }: { state: string }) {
           ? "text-cyan border-cyan/40 bg-cyan/10"
           : "text-red border-red/40 bg-red-dim/60";
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[11px] font-semibold tracking-wide ${tone}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[11px] font-semibold tracking-wide ${tone}`}
+    >
       {state}
     </span>
   );
@@ -40,7 +42,12 @@ export function TrustBadge({ trust }: { trust: string }) {
   );
 }
 
-export function Card({ title, sub, children, className = "" }: {
+export function Card({
+  title,
+  sub,
+  children,
+  className = "",
+}: {
   title?: string;
   sub?: string;
   children: React.ReactNode;
@@ -59,15 +66,38 @@ export function Card({ title, sub, children, className = "" }: {
   );
 }
 
-export function HexLink({ hex, url, to }: { hex: string; url?: string | undefined; to?: string | undefined }) {
+export function HexLink({
+  hex,
+  url,
+  to,
+}: {
+  hex: string;
+  url?: string | undefined;
+  to?: string | undefined;
+}) {
   const label = shortHex(hex);
   const cls = "font-mono text-[12px] text-cyan hover:underline";
-  if (to) return <Link to={to} className={cls}>{label}</Link>;
-  if (url) return <a href={url} target="_blank" rel="noreferrer" className={cls}>{label} ↗</a>;
+  if (to)
+    return (
+      <Link to={to} className={cls}>
+        {label}
+      </Link>
+    );
+  if (url)
+    return (
+      <a href={url} target="_blank" rel="noreferrer" className={cls}>
+        {label} ↗
+      </a>
+    );
   return <span className="font-mono text-[12px] text-fg-dim">{label}</span>;
 }
 
-export function Stat({ label, value, tone = "text-fg", mono = true }: {
+export function Stat({
+  label,
+  value,
+  tone = "text-fg",
+  mono = true,
+}: {
   label: string;
   value: string;
   tone?: string;
@@ -75,8 +105,12 @@ export function Stat({ label, value, tone = "text-fg", mono = true }: {
 }) {
   return (
     <div>
-      <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-faint">{label}</div>
-      <div className={`mt-1 text-[15px] font-semibold ${tone} ${mono ? "font-mono" : ""}`}>{value}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-faint">
+        {label}
+      </div>
+      <div className={`mt-1 text-[15px] font-semibold ${tone} ${mono ? "font-mono" : ""}`}>
+        {value}
+      </div>
     </div>
   );
 }

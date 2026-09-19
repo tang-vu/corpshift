@@ -176,11 +176,26 @@ export class Store {
 
   upsertAction(a: Omit<ActionRow, "created_at">): void {
     this.stmt.upsertAction!.run(
-        a.action_id, a.source_hash, a.source_event_id, a.asset.toLowerCase(), a.action_type,
-        a.status, a.announced_at, a.effective_at, a.observed_at, a.submitted_at,
-        a.params, a.params_hash, a.evidence_hash, a.evidence_json, a.attested_by,
-        a.tx_hash, a.chain_id, a.trust, a.error,
-      );
+      a.action_id,
+      a.source_hash,
+      a.source_event_id,
+      a.asset.toLowerCase(),
+      a.action_type,
+      a.status,
+      a.announced_at,
+      a.effective_at,
+      a.observed_at,
+      a.submitted_at,
+      a.params,
+      a.params_hash,
+      a.evidence_hash,
+      a.evidence_json,
+      a.attested_by,
+      a.tx_hash,
+      a.chain_id,
+      a.trust,
+      a.error,
+    );
   }
 
   getAction(id: string): ActionRow | undefined {
@@ -213,7 +228,13 @@ export class Store {
 
   insertEvent(e: Omit<EventRow, "id" | "indexed_at">): void {
     this.stmt.insertEvent!.run(
-      e.block_number, e.tx_hash, e.log_index, e.event_name, e.asset, e.action_id, e.data,
+      e.block_number,
+      e.tx_hash,
+      e.log_index,
+      e.event_name,
+      e.asset,
+      e.action_id,
+      e.data,
     );
   }
 
@@ -245,12 +266,12 @@ export class Store {
     pendingEffectiveAt?: bigint | undefined;
   }): void {
     this.stmt.insertNormObs!.run(
-        o.asset.toLowerCase(),
-        Number(o.blockNumber),
-        o.factor.toString(),
-        o.pendingFactor?.toString() ?? null,
-        o.pendingEffectiveAt !== undefined ? Number(o.pendingEffectiveAt) : null,
-      );
+      o.asset.toLowerCase(),
+      Number(o.blockNumber),
+      o.factor.toString(),
+      o.pendingFactor?.toString() ?? null,
+      o.pendingEffectiveAt !== undefined ? Number(o.pendingEffectiveAt) : null,
+    );
   }
 
   insertNormalizationFailure(sourceEventId: string, reason: string, raw: unknown): void {
@@ -261,7 +282,11 @@ export class Store {
     return this.db
       .prepare("SELECT * FROM normalization_failures ORDER BY id DESC LIMIT ?")
       .all(limit) as unknown as {
-      id: number; source_event_id: string; reason: string; raw_json: string; observed_at: number;
+      id: number;
+      source_event_id: string;
+      reason: string;
+      raw_json: string;
+      observed_at: number;
     }[];
   }
 

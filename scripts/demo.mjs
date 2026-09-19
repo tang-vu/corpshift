@@ -66,7 +66,9 @@ async function waitFor(url, tries = 60, what = url) {
     try {
       const r = await fetch(url, { signal: AbortSignal.timeout(1500) });
       if (r.ok || r.status === 404 || r.status === 405) return true;
-    } catch { /* retry */ }
+    } catch {
+      /* retry */
+    }
     await new Promise((r) => setTimeout(r, 500));
   }
   throw new Error(`timed out waiting for ${what}`);
@@ -82,7 +84,9 @@ async function rpcReady() {
         signal: AbortSignal.timeout(1500),
       });
       if (r.ok) return true;
-    } catch { /* retry */ }
+    } catch {
+      /* retry */
+    }
     await new Promise((r) => setTimeout(r, 500));
   }
   throw new Error("anvil did not come up");
@@ -99,7 +103,11 @@ async function portFree(port) {
 
 function shutdown() {
   for (const p of kids) {
-    try { p.kill("SIGTERM"); } catch { /* already gone */ }
+    try {
+      p.kill("SIGTERM");
+    } catch {
+      /* already gone */
+    }
   }
   process.exit(0);
 }
@@ -122,12 +130,16 @@ async function main() {
   // 2. deploy
   if (process.env.SKIP_DEPLOY !== "1" || !existsSync(join(ROOT, "deployments", "31337.json"))) {
     const env = { ...process.env, PRIVATE_KEY: K0, DEMO_MODE: "true" };
-    const r = spawnSync(bin("forge"), ["script", "script/Deploy.s.sol", "--rpc-url", RPC, "--broadcast"], {
-      cwd: join(ROOT, "packages", "contracts"),
-      env,
-      stdio: "inherit",
-      shell: process.platform === "win32",
-    });
+    const r = spawnSync(
+      bin("forge"),
+      ["script", "script/Deploy.s.sol", "--rpc-url", RPC, "--broadcast"],
+      {
+        cwd: join(ROOT, "packages", "contracts"),
+        env,
+        stdio: "inherit",
+        shell: process.platform === "win32",
+      },
+    );
     if (r.status !== 0) throw new Error("deploy failed — see forge output above");
     log("deployed → deployments/31337.json");
   } else {
@@ -146,9 +158,19 @@ async function main() {
   // 3. indexer — fixture + dry-run: indexes real Robinhood wire data and
   //    chain events without writing demo actions onchain (the conductor
   //    owns the scenario's actions).
-  run("indexer", process.execPath, ["--disable-warning=ExperimentalWarning", "apps/indexer/src/main.ts"], {
-    env: { ...sharedEnv, CORPSHIFT_SOURCE: "fixture", CORPSHIFT_DRY_RUN: "true", CORPSHIFT_POLL_MS: "8000" },
-  });
+  run(
+    "indexer",
+    process.execPath,
+    ["--disable-warning=ExperimentalWarning", "apps/indexer/src/main.ts"],
+    {
+      env: {
+        ...sharedEnv,
+        CORPSHIFT_SOURCE: "fixture",
+        CORPSHIFT_DRY_RUN: "true",
+        CORPSHIFT_POLL_MS: "8000",
+      },
+    },
+  );
 
   // 4. api
   run("api", process.execPath, ["--disable-warning=ExperimentalWarning", "apps/api/src/main.ts"], {
@@ -163,7 +185,12 @@ async function main() {
   log(`api up on http://localhost:${API_PORT}`);
 
   // 5. web
-  const vite = join(ROOT, "node_modules", ".bin", process.platform === "win32" ? "vite.cmd" : "vite");
+  const vite = join(
+    ROOT,
+    "node_modules",
+    ".bin",
+    process.platform === "win32" ? "vite.cmd" : "vite",
+  );
   run("web", vite, ["--port", String(WEB_PORT), "--strictPort"], {
     cwd: join(ROOT, "apps", "web"),
   });

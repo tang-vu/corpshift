@@ -5,14 +5,38 @@
   "type": "module",
   "description": "CorpShift ingestion daemon: source → canonical → attest → submit → index → reconcile.",
   "exports": {
-    "./db": { "types": "./src/db.ts", "default": "./src/db.ts" },
-    "./config": { "types": "./src/config.ts", "default": "./src/config.ts" },
-    "./sources": { "types": "./src/sources.ts", "default": "./src/sources.ts" },
-    "./pipeline": { "types": "./src/pipeline.ts", "default": "./src/pipeline.ts" },
-    "./reconciler": { "types": "./src/reconciler.ts", "default": "./src/reconciler.ts" },
-    "./eventlog": { "types": "./src/eventlog.ts", "default": "./src/eventlog.ts" },
-    "./attester": { "types": "./src/attester.ts", "default": "./src/attester.ts" },
-    "./submitter": { "types": "./src/submitter.ts", "default": "./src/submitter.ts" }
+    "./db": {
+      "types": "./src/db.ts",
+      "default": "./src/db.ts"
+    },
+    "./config": {
+      "types": "./src/config.ts",
+      "default": "./src/config.ts"
+    },
+    "./sources": {
+      "types": "./src/sources.ts",
+      "default": "./src/sources.ts"
+    },
+    "./pipeline": {
+      "types": "./src/pipeline.ts",
+      "default": "./src/pipeline.ts"
+    },
+    "./reconciler": {
+      "types": "./src/reconciler.ts",
+      "default": "./src/reconciler.ts"
+    },
+    "./eventlog": {
+      "types": "./src/eventlog.ts",
+      "default": "./src/eventlog.ts"
+    },
+    "./attester": {
+      "types": "./src/attester.ts",
+      "default": "./src/attester.ts"
+    },
+    "./submitter": {
+      "types": "./src/submitter.ts",
+      "default": "./src/submitter.ts"
+    }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json --noEmit",

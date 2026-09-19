@@ -9,7 +9,10 @@ export function Actions() {
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    api.actions().then((r) => setRows(r.actions)).catch((e) => setErr(e.message));
+    api
+      .actions()
+      .then((r) => setRows(r.actions))
+      .catch((e) => setErr(e.message));
   }, []);
 
   return (
@@ -17,8 +20,8 @@ export function Actions() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Canonical actions</h1>
         <p className="mt-1 text-sm text-fg-dim">
-          Corporate actions normalized to <code className="text-cyan">corpshift.action.v1</code> — hashed,
-          attested, and transitioned onchain.
+          Corporate actions normalized to <code className="text-cyan">corpshift.action.v1</code> —
+          hashed, attested, and transitioned onchain.
         </p>
       </div>
       <Card>
@@ -43,14 +46,24 @@ export function Actions() {
               {rows.map((a) => (
                 <tr key={a.actionId} className="border-b border-edge/50 last:border-0">
                   <td className="py-3">
-                    <Link to={`/actions/${a.actionId}`} className="font-mono text-cyan hover:underline">
+                    <Link
+                      to={`/actions/${a.actionId}`}
+                      className="font-mono text-cyan hover:underline"
+                    >
                       {shortHex(a.actionId)}
                     </Link>
                   </td>
-                  <td><TypeBadge type={a.actionType} /></td>
-                  <td><StateBadge state={a.status} /></td>
                   <td>
-                    <Link to={`/assets/${a.asset}`} className="font-mono text-[12px] text-fg-dim hover:text-cyan">
+                    <TypeBadge type={a.actionType} />
+                  </td>
+                  <td>
+                    <StateBadge state={a.status} />
+                  </td>
+                  <td>
+                    <Link
+                      to={`/assets/${a.asset}`}
+                      className="font-mono text-[12px] text-fg-dim hover:text-cyan"
+                    >
                       {shortHex(a.asset)}
                     </Link>
                   </td>
@@ -58,7 +71,9 @@ export function Actions() {
                     {fmtTs(a.effectiveAt)}
                     <span className="ml-1 text-fg-faint">({timeUntil(a.effectiveAt)})</span>
                   </td>
-                  <td><TrustBadge trust={a.trust} /></td>
+                  <td>
+                    <TrustBadge trust={a.trust} />
+                  </td>
                 </tr>
               ))}
             </tbody>

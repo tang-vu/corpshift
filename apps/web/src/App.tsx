@@ -22,8 +22,20 @@ function Wordmark() {
   return (
     <NavLink to="/" className="flex items-center gap-2.5">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path d="M4 16 L10 8 L14 12 L20 4" stroke="var(--color-green)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M14 4 H20 V10" stroke="var(--color-green)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M4 16 L10 8 L14 12 L20 4"
+          stroke="var(--color-green)"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M14 4 H20 V10"
+          stroke="var(--color-green)"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
       <span className="text-[15px] font-bold tracking-tight">
         Corp<span className="text-green">Shift</span>

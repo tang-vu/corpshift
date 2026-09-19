@@ -26,7 +26,9 @@ test.describe("protocol lab", () => {
     // fresh run — reset then click through all six steps. Reset must restore
     // the verified-clean baseline (uiMultiplier 1.00×), not just claim to.
     await page.getByRole("button", { name: "reset" }).click();
-    await expect(page.getByText("chain reverted to post-deploy snapshot")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("chain reverted to post-deploy snapshot")).toBeVisible({
+      timeout: 30_000,
+    });
     await expect(page.getByText("1.00×").first()).toBeVisible({ timeout: 30_000 });
 
     const steps = [
@@ -45,7 +47,9 @@ test.describe("protocol lab", () => {
       // step's label once the api finishes + state refreshes
       const next = steps[i + 1];
       await expect(
-        page.getByRole("button", { name: next ? new RegExp(`▶ ${next}`, "i") : /scenario complete/i }),
+        page.getByRole("button", {
+          name: next ? new RegExp(`▶ ${next}`, "i") : /scenario complete/i,
+        }),
       ).toBeVisible({ timeout: 90_000 });
     }
 

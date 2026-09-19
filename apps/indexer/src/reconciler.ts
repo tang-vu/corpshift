@@ -53,13 +53,15 @@ export class Reconciler {
       functionName: "assetCount",
     })) as bigint;
     const assets = await Promise.all(
-      Array.from({ length: Number(count) }, (_, i) =>
-        this.client.readContract({
-          address: this.registry,
-          abi: CorpShiftRegistryAbi,
-          functionName: "assetAt",
-          args: [BigInt(i)],
-        }) as Promise<Address>,
+      Array.from(
+        { length: Number(count) },
+        (_, i) =>
+          this.client.readContract({
+            address: this.registry,
+            abi: CorpShiftRegistryAbi,
+            functionName: "assetAt",
+            args: [BigInt(i)],
+          }) as Promise<Address>,
       ),
     );
     return assets;

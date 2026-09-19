@@ -5,15 +5,7 @@
  *   2. Evidence → keccak256(stable-JSON) — keys sorted recursively.
  *   3. Params → ABI-encoded per action type; paramsHash = keccak256(bytes).
  */
-import {
-  encodeAbiParameters,
-  isHex,
-  keccak256,
-  size,
-  stringToHex,
-  toHex,
-  type Hex,
-} from "viem";
+import { encodeAbiParameters, isHex, keccak256, size, stringToHex, toHex, type Hex } from "viem";
 import {
   ActionType,
   type ActionParams,

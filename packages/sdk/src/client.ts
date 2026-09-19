@@ -3,13 +3,7 @@
  * CorpShift apps use. Reads go through a viem PublicClient; attested writes
  * sign EIP-712 typed data locally and relay `submitAction`.
  */
-import {
-  type Account,
-  type Address,
-  type Hex,
-  type PublicClient,
-  type WalletClient,
-} from "viem";
+import { type Account, type Address, type Hex, type PublicClient, type WalletClient } from "viem";
 import {
   attestableAction,
   type AssetState,
@@ -127,9 +121,7 @@ export class CorpShiftClient {
 
   async listAssets(): Promise<Address[]> {
     const n = await this.assetCount();
-    return Promise.all(
-      Array.from({ length: Number(n) }, (_, i) => this.assetAt(BigInt(i))),
-    );
+    return Promise.all(Array.from({ length: Number(n) }, (_, i) => this.assetAt(BigInt(i))));
   }
 
   domainSeparator(): Promise<Hex> {
@@ -139,10 +131,7 @@ export class CorpShiftClient {
   /* --------------------------- policy ---------------------------- */
 
   async checkPolicy(asset: Address, op: PolicyOp): Promise<PolicyDecision> {
-    const [allowed, reason] = await this.read<readonly [boolean, Hex]>("checkPolicy", [
-      asset,
-      op,
-    ]);
+    const [allowed, reason] = await this.read<readonly [boolean, Hex]>("checkPolicy", [asset, op]);
     return { allowed, reason };
   }
 

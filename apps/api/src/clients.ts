@@ -47,9 +47,7 @@ export function buildClients(cfg: ApiConfig): ChainClients {
     publicClient,
     registry: cfg.manifest.registry,
     chainId: cfg.chainId,
-    ...(cfg.manifest.settlementVault
-      ? { settlementVault: cfg.manifest.settlementVault }
-      : {}),
+    ...(cfg.manifest.settlementVault ? { settlementVault: cfg.manifest.settlementVault } : {}),
   });
   return { chain, publicClient, corpshift };
 }

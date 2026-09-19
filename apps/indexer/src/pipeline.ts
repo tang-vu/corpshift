@@ -40,7 +40,8 @@ export async function tick(deps: PipelineDeps, mockNonce: number): Promise<TickR
 
   // Phase 1: record all observations in ONE transaction (per-statement
   // auto-commit fsyncs are ~340ms each on Windows — this is ~100x faster).
-  const fresh: { action: (typeof batch.actions)[number]; enc: ReturnType<typeof canonicalize> }[] = [];
+  const fresh: { action: (typeof batch.actions)[number]; enc: ReturnType<typeof canonicalize> }[] =
+    [];
   store.tx(() => {
     for (const failure of batch.failures) {
       store.insertNormalizationFailure(failure.sourceEventId, failure.reason, failure.raw);

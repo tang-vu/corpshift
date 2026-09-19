@@ -60,7 +60,12 @@ paths:
       summary: Policy decision for an operation on an asset (live onchain read)
       parameters:
         - { name: asset, in: path, required: true, schema: { type: string } }
-        - { name: op, in: path, required: true, schema: { type: integer, description: "PolicyOp enum index (0 Deposit … 8 PriceRead)" } }
+        - {
+            name: op,
+            in: path,
+            required: true,
+            schema: { type: integer, description: "PolicyOp enum index (0 Deposit … 8 PriceRead)" },
+          }
       responses:
         "200": { description: ok }
   /v1/exposure/{asset}/{account}:

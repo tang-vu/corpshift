@@ -9,7 +9,10 @@ export function Assets() {
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    api.assets().then((r) => setRows(r.assets)).catch((e) => setErr(e.message));
+    api
+      .assets()
+      .then((r) => setRows(r.assets))
+      .catch((e) => setErr(e.message));
   }, []);
 
   return (
@@ -17,7 +20,8 @@ export function Assets() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Registered assets</h1>
         <p className="mt-1 text-sm text-fg-dim">
-          Assets under CorpShift supervision — live state, normalization factor, and pending actions.
+          Assets under CorpShift supervision — live state, normalization factor, and pending
+          actions.
         </p>
       </div>
       <Card>
@@ -43,11 +47,15 @@ export function Assets() {
                       {shortHex(a.asset, 8)}
                     </Link>
                   </td>
-                  <td><StateBadge state={a.state} /></td>
+                  <td>
+                    <StateBadge state={a.state} />
+                  </td>
                   <td className="font-mono">{fmtMult(a.normalizationFactor)}</td>
                   <td className="font-mono text-fg-dim">{fmtMult(a.verifiedFactor)}</td>
                   <td>
-                    {a.pendingActionId && a.pendingActionId !== "0x0000000000000000000000000000000000000000000000000000000000000000" ? (
+                    {a.pendingActionId &&
+                    a.pendingActionId !==
+                      "0x0000000000000000000000000000000000000000000000000000000000000000" ? (
                       <HexLink hex={a.pendingActionId} to={`/actions/${a.pendingActionId}`} />
                     ) : (
                       <span className="text-fg-faint">—</span>

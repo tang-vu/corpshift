@@ -1,0 +1,11 @@
+# CorpShift demo — single-container stack (anvil + deploy + indexer + api + web).
+#   docker compose up --build
+#   open http://localhost:3000/lab
+services:
+  corpshift:
+    build: .
+    ports:
+      - "3000:3000" # web (vite dev — the Protocol Lab)
+      - "4000:4000" # api (openapi: /openapi.yaml)
+      - "8545:8545" # anvil local chain
+    restart: unless-stopped

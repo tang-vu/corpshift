@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+dist
+**/dist
+data
+test-results
+playwright-report
+.claude
+.git
+*.log
+packages/contracts/out
+packages/contracts/cache
+packages/contracts/broadcast

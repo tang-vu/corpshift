@@ -18,7 +18,10 @@ for (let i = 0; i < 2; i++) {
     await conductor().prepare();
     break;
   } catch (e) {
-    if (i === 1) console.warn(`demo snapshot unavailable: ${(e as Error).message} — /v1/demo/reset will report it honestly`);
+    if (i === 1)
+      console.warn(
+        `demo snapshot unavailable: ${(e as Error).message} — /v1/demo/reset will report it honestly`,
+      );
     else await new Promise((r) => setTimeout(r, 750));
   }
 }

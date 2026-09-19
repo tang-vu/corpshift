@@ -21,8 +21,14 @@ const sourceEventId = z.union([
   z.string().min(1).max(256), // utf8 ids are keccak-hashed downstream
 ]);
 
-const uint64 = z.bigint().min(0n).max(2n ** 64n - 1n);
-const uint256 = z.bigint().min(0n).max(2n ** 256n - 1n);
+const uint64 = z
+  .bigint()
+  .min(0n)
+  .max(2n ** 64n - 1n);
+const uint256 = z
+  .bigint()
+  .min(0n)
+  .max(2n ** 256n - 1n);
 
 const splitParams = z.object({
   numerator: uint256,

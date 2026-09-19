@@ -14,7 +14,7 @@ import {
   ACTION_TYPE_NAMES,
   ASSET_STATE_NAMES,
   ActionStatus,
-  AssetState,
+  type AssetState,
   type ActionType,
 } from "@corpshift/core";
 import { chainInfo, explorerAddressUrl, explorerTxUrl } from "@corpshift/shared";
@@ -85,7 +85,12 @@ export function buildApp(cfg: ApiConfig, clients: ChainClients) {
       chain: chainInfo(cfg.chainId).name,
       registry: cfg.manifest.registry,
       demoMode: cfg.manifest.demoMode,
-      demoEnabled: !!(cfg.demoUserKey && cfg.demoOperatorKey && cfg.demoLiquidatorKey && cfg.attesterKey),
+      demoEnabled: !!(
+        cfg.demoUserKey &&
+        cfg.demoOperatorKey &&
+        cfg.demoLiquidatorKey &&
+        cfg.attesterKey
+      ),
     }),
   );
 
@@ -197,10 +202,7 @@ export function buildApp(cfg: ApiConfig, clients: ChainClients) {
   });
 
   app.get("/v1/exposure/:asset/:account", async (c) => {
-    const e = await cs.exposureOf(
-      addr(c.req.param("asset")),
-      addr(c.req.param("account")),
-    );
+    const e = await cs.exposureOf(addr(c.req.param("asset")), addr(c.req.param("account")));
     return c.json({
       units: e.units.toString(),
       normalizationFactor: e.normalizationFactor.toString(),

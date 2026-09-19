@@ -24,7 +24,10 @@ export function fmtUsd6(v: string | bigint): string {
 export function fmt(n: number, digits = 2): string {
   if (!isFinite(n)) return "—";
   if (Math.abs(n) >= 1e9) return n.toExponential(2);
-  return n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return n.toLocaleString("en-US", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
 }
 
 /** Health factor: bigint 18dp; huge = no debt. */

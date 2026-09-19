@@ -86,7 +86,9 @@ export class DemoConductor {
 
   constructor(cfg: ApiConfig, clients: ChainClients, store: Store) {
     if (!cfg.demoUserKey || !cfg.demoOperatorKey || !cfg.demoLiquidatorKey || !cfg.attesterKey) {
-      throw new Error("demo keys not configured (CORPSHIFT_DEMO_USER_KEY, CORPSHIFT_OPERATOR_KEY, CORPSHIFT_LIQUIDATOR_KEY, CORPSHIFT_ATTESTER_KEY)");
+      throw new Error(
+        "demo keys not configured (CORPSHIFT_DEMO_USER_KEY, CORPSHIFT_OPERATOR_KEY, CORPSHIFT_LIQUIDATOR_KEY, CORPSHIFT_ATTESTER_KEY)",
+      );
     }
     this.cfg = cfg;
     this.clients = clients;
@@ -99,11 +101,7 @@ export class DemoConductor {
     this.user = mk(cfg.demoUserKey);
     this.operator = mk(cfg.demoOperatorKey);
     this.liquidator = mk(cfg.demoLiquidatorKey);
-    this.attester = new Attester(
-      cfg.attesterKey,
-      BigInt(cfg.chainId),
-      cfg.manifest.registry,
-    );
+    this.attester = new Attester(cfg.attesterKey, BigInt(cfg.chainId), cfg.manifest.registry);
   }
 
   get isLocal(): boolean {
@@ -120,7 +118,13 @@ export class DemoConductor {
 
   /* ------------------------- helpers ------------------------- */
 
-  private async send(role: Role, to: Address, abi: unknown, fn: string, args: unknown[]): Promise<Hex> {
+  private async send(
+    role: Role,
+    to: Address,
+    abi: unknown,
+    fn: string,
+    args: unknown[],
+  ): Promise<Hex> {
     const hash = await role.wallet.writeContract({
       account: role.account,
       chain: this.clients.chain,
@@ -134,10 +138,21 @@ export class DemoConductor {
   }
 
   private async read<T>(to: Address, abi: unknown, fn: string, args: unknown[] = []): Promise<T> {
-    return this.pub.readContract({ address: to, abi, functionName: fn, args } as never) as Promise<T>;
+    return this.pub.readContract({
+      address: to,
+      abi,
+      functionName: fn,
+      args,
+    } as never) as Promise<T>;
   }
 
-  private async simulateError(role: Role, to: Address, abi: unknown, fn: string, args: unknown[]): Promise<string> {
+  private async simulateError(
+    role: Role,
+    to: Address,
+    abi: unknown,
+    fn: string,
+    args: unknown[],
+  ): Promise<string> {
     try {
       await this.pub.simulateContract({
         account: role.address,
@@ -166,23 +181,51 @@ export class DemoConductor {
 
   async reset(): Promise<DemoStepResult> {
     if (!this.isLocal) {
-      return { step: "reset", ok: false, detail: "reset requires evm_revert — only available on local chains; redeploy for a fresh run", txs: [] };
+      return {
+        step: "reset",
+        ok: false,
+        detail:
+          "reset requires evm_revert — only available on local chains; redeploy for a fresh run",
+        txs: [],
+      };
     }
     if (this.busy) {
-      return { step: "reset", ok: false, detail: "a step is already in flight — wait for it to finish", txs: [] };
+      return {
+        step: "reset",
+        ok: false,
+        detail: "a step is already in flight — wait for it to finish",
+        txs: [],
+      };
     }
     this.busy = true;
     try {
       // self-heal: the boot-time snapshot may have raced chain/db startup
       if (!this.snapshotId) await this.prepare().catch(() => undefined);
       if (!this.snapshotId) {
-        return { step: "reset", ok: false, detail: "no evm snapshot available — restart `pnpm demo` for a clean baseline", txs: [] };
+        return {
+          step: "reset",
+          ok: false,
+          detail: "no evm snapshot available — restart `pnpm demo` for a clean baseline",
+          txs: [],
+        };
       }
-      const reverted = await this.pub.request({ method: "evm_revert" as never, params: [this.snapshotId] as never }) as boolean;
+      const reverted = (await this.pub.request({
+        method: "evm_revert" as never,
+        params: [this.snapshotId] as never,
+      })) as boolean;
       // snapshot ids are single-use — retake for the next reset regardless
-      this.snapshotId = await this.pub.request({ method: "evm_snapshot" as never, params: [] as never }) as Hex;
+      this.snapshotId = (await this.pub.request({
+        method: "evm_snapshot" as never,
+        params: [] as never,
+      })) as Hex;
       if (reverted !== true) {
-        return { step: "reset", ok: false, detail: "evm snapshot was consumed (anvil restarted?) — restart `pnpm demo` for a clean baseline", txs: [] };
+        return {
+          step: "reset",
+          ok: false,
+          detail:
+            "evm snapshot was consumed (anvil restarted?) — restart `pnpm demo` for a clean baseline",
+          txs: [],
+        };
       }
       // verify the reverted state really is the deploy baseline — a snapshot
       // taken mid-scenario would silently "reset" onto a dirty chain
@@ -191,7 +234,13 @@ export class DemoConductor {
         this.read<bigint>(this.m.naiveVault, NaiveVaultAbi, "collateralRaw", [this.user.address]),
       ]);
       if (mult !== 10n ** 18n || naiveRaw !== 0n) {
-        return { step: "reset", ok: false, detail: "snapshot baseline is dirty (chain diverged from deploy state) — restart `pnpm demo`", txs: [] };
+        return {
+          step: "reset",
+          ok: false,
+          detail:
+            "snapshot baseline is dirty (chain diverged from deploy state) — restart `pnpm demo`",
+          txs: [],
+        };
       }
       this.setStep(0);
       this.store.setMeta("demo.actionId", "");
@@ -227,22 +276,60 @@ export class DemoConductor {
     }
 
     // faucet: stock for user, mUSDG for liquidator (both permissionless mints)
-    if ((await this.read<bigint>(mockStockToken, stock, "balanceOf", [this.user.address])) < DEMO_DEPOSIT * 2n) {
-      txs.push(this.txRec("mint 20 stock to user", await this.send(this.user, mockStockToken, stock, "mint", [this.user.address, DEMO_DEPOSIT * 2n])));
+    if (
+      (await this.read<bigint>(mockStockToken, stock, "balanceOf", [this.user.address])) <
+      DEMO_DEPOSIT * 2n
+    ) {
+      txs.push(
+        this.txRec(
+          "mint 20 stock to user",
+          await this.send(this.user, mockStockToken, stock, "mint", [
+            this.user.address,
+            DEMO_DEPOSIT * 2n,
+          ]),
+        ),
+      );
     }
-    if ((await this.read<bigint>(mockUSDG, usdg, "balanceOf", [this.liquidator.address])) < DEMO_BORROW * 2n) {
-      txs.push(this.txRec("mint mUSDG to liquidator", await this.send(this.liquidator, mockUSDG, usdg, "mint", [this.liquidator.address, DEMO_BORROW * 10n])));
+    if (
+      (await this.read<bigint>(mockUSDG, usdg, "balanceOf", [this.liquidator.address])) <
+      DEMO_BORROW * 2n
+    ) {
+      txs.push(
+        this.txRec(
+          "mint mUSDG to liquidator",
+          await this.send(this.liquidator, mockUSDG, usdg, "mint", [
+            this.liquidator.address,
+            DEMO_BORROW * 10n,
+          ]),
+        ),
+      );
     }
-    for (const [label, vault] of [["naive", naiveVault], ["aware", awareVault]] as const) {
+    for (const [label, vault] of [
+      ["naive", naiveVault],
+      ["aware", awareVault],
+    ] as const) {
       const [stockAllowance, debtAllowance] = await Promise.all([
         this.read<bigint>(mockStockToken, stock, "allowance", [this.user.address, vault]),
         this.read<bigint>(mockUSDG, usdg, "allowance", [this.user.address, vault]),
       ]);
       if (stockAllowance < DEMO_DEPOSIT) {
-        txs.push(this.txRec(`approve stock→${label} vault`, await this.send(this.user, mockStockToken, stock, "approve", [vault, DEMO_DEPOSIT * 100n])));
+        txs.push(
+          this.txRec(
+            `approve stock→${label} vault`,
+            await this.send(this.user, mockStockToken, stock, "approve", [
+              vault,
+              DEMO_DEPOSIT * 100n,
+            ]),
+          ),
+        );
       }
       if (debtAllowance < DEMO_BORROW * 4n) {
-        txs.push(this.txRec(`approve mUSDG→${label} vault`, await this.send(this.user, mockUSDG, usdg, "approve", [vault, DEMO_BORROW * 100n])));
+        txs.push(
+          this.txRec(
+            `approve mUSDG→${label} vault`,
+            await this.send(this.user, mockUSDG, usdg, "approve", [vault, DEMO_BORROW * 100n]),
+          ),
+        );
       }
       // idempotent: if the position already exists (re-run without reset,
       // or snapshot taken mid-scenario), top it up rather than stacking
@@ -252,14 +339,29 @@ export class DemoConductor {
         this.read<bigint>(vault, abi, "debtOf", [this.user.address]),
       ]);
       if (haveRaw < DEMO_DEPOSIT) {
-        txs.push(this.txRec(`deposit 10 → ${label} vault`, await this.send(this.user, vault, abi, "deposit", [DEMO_DEPOSIT - haveRaw])));
+        txs.push(
+          this.txRec(
+            `deposit 10 → ${label} vault`,
+            await this.send(this.user, vault, abi, "deposit", [DEMO_DEPOSIT - haveRaw]),
+          ),
+        );
       }
       if (haveDebt < DEMO_BORROW) {
-        txs.push(this.txRec(`borrow $400 ← ${label} vault`, await this.send(this.user, vault, abi, "borrow", [DEMO_BORROW - haveDebt])));
+        txs.push(
+          this.txRec(
+            `borrow $400 ← ${label} vault`,
+            await this.send(this.user, vault, abi, "borrow", [DEMO_BORROW - haveDebt]),
+          ),
+        );
       }
     }
     this.setStep(1);
-    return { step: "seed", ok: true, detail: "user deposited 10 stock tokens + borrowed $400 in both vaults (HF 2.0 each)", txs };
+    return {
+      step: "seed",
+      ok: true,
+      detail: "user deposited 10 stock tokens + borrowed $400 in both vaults (HF 2.0 each)",
+      txs,
+    };
   }
 
   /** step 2: attested 4:1 split lands onchain → asset ACTION_PENDING. */
@@ -310,10 +412,26 @@ export class DemoConductor {
     const { naiveVault, awareVault } = this.m;
     const txs: DemoStepResult["txs"] = [];
     // naive vault: knows nothing — borrow + repay succeed on stale assumptions
-    txs.push(this.txRec("naive borrow +$10 (stale)", await this.send(this.user, naiveVault, NaiveVaultAbi, "borrow", [10_000_000n])));
-    txs.push(this.txRec("naive repay $10", await this.send(this.user, naiveVault, NaiveVaultAbi, "repay", [10_000_000n])));
+    txs.push(
+      this.txRec(
+        "naive borrow +$10 (stale)",
+        await this.send(this.user, naiveVault, NaiveVaultAbi, "borrow", [10_000_000n]),
+      ),
+    );
+    txs.push(
+      this.txRec(
+        "naive repay $10",
+        await this.send(this.user, naiveVault, NaiveVaultAbi, "repay", [10_000_000n]),
+      ),
+    );
     // aware vault: policy gate blocks borrow while ACTION_PENDING
-    const awareErr = await this.simulateError(this.user, awareVault, CorpShiftAwareVaultAbi, "borrow", [10_000_000n]);
+    const awareErr = await this.simulateError(
+      this.user,
+      awareVault,
+      CorpShiftAwareVaultAbi,
+      "borrow",
+      [10_000_000n],
+    );
     this.setStep(3);
     return {
       step: "probe",
@@ -331,29 +449,83 @@ export class DemoConductor {
     const effectiveAt = BigInt(this.store.getMeta("demo.effectiveAt") ?? "0");
     const txs: DemoStepResult["txs"] = [];
 
-    txs.push(this.txRec("issuer scheduleMultiplierUpdate(4e18)", await this.send(this.operator, mockStockToken, MockStockTokenAbi, "scheduleMultiplierUpdate", [NEW_MULTIPLIER, effectiveAt])));
+    txs.push(
+      this.txRec(
+        "issuer scheduleMultiplierUpdate(4e18)",
+        await this.send(
+          this.operator,
+          mockStockToken,
+          MockStockTokenAbi,
+          "scheduleMultiplierUpdate",
+          [NEW_MULTIPLIER, effectiveAt],
+        ),
+      ),
+    );
 
     if (this.isLocal) {
       const now = await this.pub.getBlock().then((b) => b.timestamp);
       const target = effectiveAt > now ? effectiveAt + 1n : now + 1n;
-      await this.pub.request({ method: "evm_setNextBlockTimestamp" as never, params: [Number(target)] as never });
+      await this.pub.request({
+        method: "evm_setNextBlockTimestamp" as never,
+        params: [Number(target)] as never,
+      });
     } else {
       const now = BigInt(Math.floor(Date.now() / 1000));
       if (now < effectiveAt) {
-        return { step: "execute", ok: false, detail: `not yet effective — wait ${effectiveAt - now}s`, txs };
+        return {
+          step: "execute",
+          ok: false,
+          detail: `not yet effective — wait ${effectiveAt - now}s`,
+          txs,
+        };
       }
     }
-    txs.push(this.txRec("oracle setPrice $100→$25", await this.send(this.operator, priceOracle, MockPriceOracleAbi, "setPrice", [mockStockToken, POST_SPLIT_PRICE])));
-    txs.push(this.txRec("activateAction → ADJUSTING", await this.send(this.operator, this.cfg.manifest.registry, CorpShiftRegistryAbi, "activateAction", [actionId])));
-    txs.push(this.txRec("syncMultiplier (crank)", await this.send(this.operator, mockStockToken, MockStockTokenAbi, "syncMultiplier", [])));
+    txs.push(
+      this.txRec(
+        "oracle setPrice $100→$25",
+        await this.send(this.operator, priceOracle, MockPriceOracleAbi, "setPrice", [
+          mockStockToken,
+          POST_SPLIT_PRICE,
+        ]),
+      ),
+    );
+    txs.push(
+      this.txRec(
+        "activateAction → ADJUSTING",
+        await this.send(
+          this.operator,
+          this.cfg.manifest.registry,
+          CorpShiftRegistryAbi,
+          "activateAction",
+          [actionId],
+        ),
+      ),
+    );
+    txs.push(
+      this.txRec(
+        "syncMultiplier (crank)",
+        await this.send(this.operator, mockStockToken, MockStockTokenAbi, "syncMultiplier", []),
+      ),
+    );
     this.setStep(4);
-    return { step: "execute", ok: true, detail: "4e18 multiplier scheduled + effective; share price $100→$25; action ADJUSTING", txs };
+    return {
+      step: "execute",
+      ok: true,
+      detail: "4e18 multiplier scheduled + effective; share price $100→$25; action ADJUSTING",
+      txs,
+    };
   }
 
   /** step 5: registry reconciles the onchain multiplier → RESOLVED. */
   async reconcile(): Promise<DemoStepResult> {
     const actionId = this.store.getMeta("demo.actionId") as Hex;
-    const hash = await this.send(this.operator, this.cfg.manifest.registry, CorpShiftRegistryAbi, "applyAction", [actionId]);
+    const hash = await this.send(
+      this.operator,
+      this.cfg.manifest.registry,
+      CorpShiftRegistryAbi,
+      "applyAction",
+      [actionId],
+    );
     const state = await this.clients.corpshift.assetState(this.m.mockStockToken);
     this.setStep(5);
     return {
@@ -369,12 +541,31 @@ export class DemoConductor {
     const { mockUSDG, naiveVault, awareVault } = this.m;
     const txs: DemoStepResult["txs"] = [];
     const liq = this.liquidator;
-    const allowance = await this.read<bigint>(mockUSDG, MockUSDGAbi, "allowance", [liq.address, naiveVault]);
+    const allowance = await this.read<bigint>(mockUSDG, MockUSDGAbi, "allowance", [
+      liq.address,
+      naiveVault,
+    ]);
     if (allowance < DEMO_BORROW) {
-      txs.push(this.txRec("liquidator approve mUSDG", await this.send(liq, mockUSDG, MockUSDGAbi, "approve", [naiveVault, DEMO_BORROW * 10n])));
+      txs.push(
+        this.txRec(
+          "liquidator approve mUSDG",
+          await this.send(liq, mockUSDG, MockUSDGAbi, "approve", [naiveVault, DEMO_BORROW * 10n]),
+        ),
+      );
     }
-    txs.push(this.txRec("naive liquidate(user) — WRONGFUL", await this.send(liq, naiveVault, NaiveVaultAbi, "liquidate", [this.user.address])));
-    const awareErr = await this.simulateError(liq, awareVault, CorpShiftAwareVaultAbi, "liquidate", [this.user.address]);
+    txs.push(
+      this.txRec(
+        "naive liquidate(user) — WRONGFUL",
+        await this.send(liq, naiveVault, NaiveVaultAbi, "liquidate", [this.user.address]),
+      ),
+    );
+    const awareErr = await this.simulateError(
+      liq,
+      awareVault,
+      CorpShiftAwareVaultAbi,
+      "liquidate",
+      [this.user.address],
+    );
     this.setStep(6);
     return {
       step: "liquidate",
@@ -397,10 +588,20 @@ export class DemoConductor {
     ];
     const at = this.metaStep();
     if (at >= steps.length) {
-      return { step: "done", ok: true, detail: "scenario complete — call reset to run again", txs: [] };
+      return {
+        step: "done",
+        ok: true,
+        detail: "scenario complete — call reset to run again",
+        txs: [],
+      };
     }
     if (this.busy) {
-      return { step: "busy", ok: false, detail: "a step is already in flight — poll /v1/demo/state", txs: [] };
+      return {
+        step: "busy",
+        ok: false,
+        detail: "a step is already in flight — poll /v1/demo/state",
+        txs: [],
+      };
     }
     this.busy = true;
     try {
@@ -413,7 +614,10 @@ export class DemoConductor {
   /** ensure the evm snapshot exists (call once at boot on local chains). */
   async prepare(): Promise<void> {
     if (this.isLocal && !this.snapshotId) {
-      this.snapshotId = await this.pub.request({ method: "evm_snapshot" as never, params: [] as never }) as Hex;
+      this.snapshotId = (await this.pub.request({
+        method: "evm_snapshot" as never,
+        params: [] as never,
+      })) as Hex;
     }
   }
 
@@ -437,19 +641,29 @@ export class DemoConductor {
   async state() {
     const m = this.m;
     const user = this.user.address;
-    const [state, factor, verifiedFactor, pending, multiplier, price, naive, aware, stockBal, debtBal] =
-      await Promise.all([
-        this.clients.corpshift.assetState(m.mockStockToken),
-        this.clients.corpshift.normalizationFactor(m.mockStockToken),
-        this.clients.corpshift.verifiedFactor(m.mockStockToken),
-        this.clients.corpshift.pendingAction(m.mockStockToken),
-        this.read<bigint>(m.mockStockToken, MockStockTokenAbi, "uiMultiplier"),
-        this.read<bigint>(m.priceOracle, MockPriceOracleAbi, "latestAnswer", [m.mockStockToken]),
-        this.vaultView(m.naiveVault, NaiveVaultAbi, user),
-        this.vaultView(m.awareVault, CorpShiftAwareVaultAbi, user),
-        this.read<bigint>(m.mockStockToken, MockStockTokenAbi, "balanceOf", [user]),
-        this.read<bigint>(m.mockUSDG, MockUSDGAbi, "balanceOf", [user]),
-      ]);
+    const [
+      state,
+      factor,
+      verifiedFactor,
+      pending,
+      multiplier,
+      price,
+      naive,
+      aware,
+      stockBal,
+      debtBal,
+    ] = await Promise.all([
+      this.clients.corpshift.assetState(m.mockStockToken),
+      this.clients.corpshift.normalizationFactor(m.mockStockToken),
+      this.clients.corpshift.verifiedFactor(m.mockStockToken),
+      this.clients.corpshift.pendingAction(m.mockStockToken),
+      this.read<bigint>(m.mockStockToken, MockStockTokenAbi, "uiMultiplier"),
+      this.read<bigint>(m.priceOracle, MockPriceOracleAbi, "latestAnswer", [m.mockStockToken]),
+      this.vaultView(m.naiveVault, NaiveVaultAbi, user),
+      this.vaultView(m.awareVault, CorpShiftAwareVaultAbi, user),
+      this.read<bigint>(m.mockStockToken, MockStockTokenAbi, "balanceOf", [user]),
+      this.read<bigint>(m.mockUSDG, MockUSDGAbi, "balanceOf", [user]),
+    ]);
     return {
       step: this.metaStep(),
       user,

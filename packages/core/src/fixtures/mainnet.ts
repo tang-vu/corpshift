@@ -21,8 +21,7 @@ export const MAINNET_TOKENS = {
 export const USDG_MAINNET = "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168" as Address;
 
 /** CRWD onchain uid() — equals the /assets `id` field. */
-export const CRWD_UID: Hex =
-  "0x000000000000000000000000000000001adecf2c6a3749f9873b8926b5977c0a";
+export const CRWD_UID: Hex = "0x000000000000000000000000000000001adecf2c6a3749f9873b8926b5977c0a";
 
 /** The CRWD 4-for-1 split, as verified live: uiMultiplier went to 4e18
  *  with effectiveAt = 1782999000. The strongest possible demo evidence —

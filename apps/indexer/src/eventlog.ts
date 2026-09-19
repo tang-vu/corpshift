@@ -3,13 +3,7 @@
  * decodes CorpShift events, and persists them. Also refreshes the stored
  * onchain status of indexed actions so the API mirrors chain truth.
  */
-import {
-  decodeEventLog,
-  type Address,
-  type Hex,
-  type Log,
-  type PublicClient,
-} from "viem";
+import { decodeEventLog, type Address, type Hex, type Log, type PublicClient } from "viem";
 import { CorpShiftRegistryAbi } from "@corpshift/sdk";
 import type { Store } from "./db.ts";
 

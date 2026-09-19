@@ -10,7 +10,10 @@ export function AssetDetail() {
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    api.asset(asset).then(setData).catch((e) => setErr(e.message));
+    api
+      .asset(asset)
+      .then(setData)
+      .catch((e) => setErr(e.message));
   }, [asset]);
 
   return (
@@ -25,15 +28,23 @@ export function AssetDetail() {
           <Card>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-faint">state</div>
-                <div className="mt-1"><StateBadge state={data.state} /></div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-faint">
+                  state
+                </div>
+                <div className="mt-1">
+                  <StateBadge state={data.state} />
+                </div>
               </div>
               <Stat label="normalization factor" value={fmtMult(data.normalizationFactor)} />
               <Stat label="verified factor" value={fmtMult(data.verifiedFactor)} />
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-faint">pending action</div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-faint">
+                  pending action
+                </div>
                 <div className="mt-1">
-                  {data.pendingActionId && data.pendingActionId !== "0x0000000000000000000000000000000000000000000000000000000000000000" ? (
+                  {data.pendingActionId &&
+                  data.pendingActionId !==
+                    "0x0000000000000000000000000000000000000000000000000000000000000000" ? (
                     <HexLink hex={data.pendingActionId} to={`/actions/${data.pendingActionId}`} />
                   ) : (
                     <span className="text-fg-faint">—</span>
@@ -53,7 +64,9 @@ export function AssetDetail() {
                 >
                   <TypeBadge type={a.actionType} />
                   <StateBadge state={a.status} />
-                  <span className="font-mono text-[11px] text-fg-faint">{shortHex(a.actionId)}</span>
+                  <span className="font-mono text-[11px] text-fg-faint">
+                    {shortHex(a.actionId)}
+                  </span>
                   <span className="ml-auto font-mono text-[11px] text-fg-dim">
                     eff {fmtTs(a.effectiveAt)} · {timeUntil(a.effectiveAt)}
                   </span>

@@ -42,13 +42,21 @@ async function main() {
   check("demo conductor enabled", health.demoEnabled === true);
 
   const before = await j("/v1/actions");
-  check("indexer recorded canonical actions", before.actions.length >= 1, `${before.actions.length} rows`);
+  check(
+    "indexer recorded canonical actions",
+    before.actions.length >= 1,
+    `${before.actions.length} rows`,
+  );
 
   await j("/v1/demo/reset", "POST");
   const names = ["seed", "attest", "probe", "execute", "reconcile", "liquidate"];
   for (const want of names) {
     const r = await j("/v1/demo/step", "POST");
-    check(`step ${want} executed (${r.txs.length} txs)`, r.ok === true && r.step === want, r.detail);
+    check(
+      `step ${want} executed (${r.txs.length} txs)`,
+      r.ok === true && r.step === want,
+      r.detail,
+    );
   }
 
   const s = await j("/v1/demo/state");
@@ -56,19 +64,28 @@ async function main() {
   console.log(`    assetState         ${s.assetState}`);
   console.log(`    uiMultiplier       ${Number(BigInt(s.uiMultiplier)) / 1e18}x`);
   console.log(`    oracle price       $${Number(BigInt(s.price)) / 1e8}`);
-  console.log(`    naive vault        collateralValue $${Number(BigInt(s.vaults.naive.collateralValue)) / 1e18}, debt $${Number(BigInt(s.vaults.naive.debt)) / 1e6}`);
-  console.log(`    aware vault        collateralValue $${Number(BigInt(s.vaults.aware.collateralValue)) / 1e18}, healthFactor ${Number(BigInt(s.vaults.aware.healthFactor)) / 1e18}`);
+  console.log(
+    `    naive vault        collateralValue $${Number(BigInt(s.vaults.naive.collateralValue)) / 1e18}, debt $${Number(BigInt(s.vaults.naive.debt)) / 1e6}`,
+  );
+  console.log(
+    `    aware vault        collateralValue $${Number(BigInt(s.vaults.aware.collateralValue)) / 1e18}, healthFactor ${Number(BigInt(s.vaults.aware.healthFactor)) / 1e18}`,
+  );
   console.log();
 
   check("registry verified multiplier onchain (4e18)", BigInt(s.uiMultiplier) === 4n * E18);
   check("asset returned to ACTIVE", s.assetState === "ACTIVE");
-  check("naive vault position seized (wrongful liquidation)", BigInt(s.vaults.naive.collateralRaw) === 0n);
+  check(
+    "naive vault position seized (wrongful liquidation)",
+    BigInt(s.vaults.naive.collateralRaw) === 0n,
+  );
   check("aware vault position intact (10 stk)", BigInt(s.vaults.aware.collateralRaw) === 10n * E18);
   check("aware vault health factor 2.00", BigInt(s.vaults.aware.healthFactor) === 2n * E18);
 
   console.log();
   if (failures === 0) {
-    console.log("  \x1b[32m✓ killer demo verified — CorpShift kept DeFi economically correct\x1b[0m\n");
+    console.log(
+      "  \x1b[32m✓ killer demo verified — CorpShift kept DeFi economically correct\x1b[0m\n",
+    );
   } else {
     console.log(`  \x1b[31m✗ ${failures}/${step} checks failed\x1b[0m\n`);
     process.exit(1);

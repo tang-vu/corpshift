@@ -49,9 +49,7 @@ describe("pipeline tick (fixture, dry-run)", () => {
     expect(res.newActions).toBeGreaterThanOrEqual(1);
 
     const actions = store.listActions();
-    const crwd = actions.find(
-      (a) => a.asset === "0xea72ecca2d0f6bfa1394dbbcff85b52cd4233931",
-    );
+    const crwd = actions.find((a) => a.asset === "0xea72ecca2d0f6bfa1394dbbcff85b52cd4233931");
     expect(crwd).toBeDefined();
     expect(crwd?.action_type).toBe(ActionType.ForwardSplit);
     expect(crwd?.trust).toBe("fixture-replay");

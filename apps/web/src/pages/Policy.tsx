@@ -22,10 +22,13 @@ export function Policy() {
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    api.assets().then((r) => {
-      setAssets(r.assets);
-      if (r.assets[0]) setAsset(r.assets[0].asset);
-    }).catch((e) => setErr(e.message));
+    api
+      .assets()
+      .then((r) => {
+        setAssets(r.assets);
+        if (r.assets[0]) setAsset(r.assets[0].asset);
+      })
+      .catch((e) => setErr(e.message));
   }, []);
 
   useEffect(() => {
@@ -33,7 +36,10 @@ export function Policy() {
     setResults({});
     Promise.all(
       OPS.map((op) =>
-        api.policy(asset, op.id).then((r) => [op.id, r] as const).catch(() => null),
+        api
+          .policy(asset, op.id)
+          .then((r) => [op.id, r] as const)
+          .catch(() => null),
       ),
     ).then((rs) => {
       const m: Record<number, PolicyResult> = {};
@@ -49,8 +55,8 @@ export function Policy() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Policy playground</h1>
         <p className="mt-1 text-sm text-fg-dim">
-          Live <code className="text-cyan">checkPolicy(asset, op)</code> reads against the onchain PolicyEngine —
-          what downstream protocols gate on before every risky operation.
+          Live <code className="text-cyan">checkPolicy(asset, op)</code> reads against the onchain
+          PolicyEngine — what downstream protocols gate on before every risky operation.
         </p>
       </div>
 
@@ -60,14 +66,18 @@ export function Policy() {
       {assets.length > 0 && (
         <>
           <div className="flex flex-wrap items-center gap-3">
-            <label className="text-[11px] font-semibold uppercase tracking-widest text-fg-faint">asset</label>
+            <label className="text-[11px] font-semibold uppercase tracking-widest text-fg-faint">
+              asset
+            </label>
             <select
               value={asset}
               onChange={(e) => setAsset(e.target.value)}
               className="rounded-md border border-edge-2 bg-panel-2 px-3 py-1.5 font-mono text-[12px] text-fg outline-none focus:border-green"
             >
               {assets.map((a) => (
-                <option key={a.asset} value={a.asset}>{shortHex(a.asset, 10)}</option>
+                <option key={a.asset} value={a.asset}>
+                  {shortHex(a.asset, 10)}
+                </option>
               ))}
             </select>
             {sel && <StateBadge state={sel.state} />}
@@ -89,7 +99,9 @@ export function Policy() {
                     }`}
                   >
                     <span className="font-mono text-[12px] font-semibold">{op.name}</span>
-                    <span className={`font-mono text-[11px] font-bold ${r === undefined ? "text-fg-faint" : r.allowed ? "text-green" : "text-red"}`}>
+                    <span
+                      className={`font-mono text-[11px] font-bold ${r === undefined ? "text-fg-faint" : r.allowed ? "text-green" : "text-red"}`}
+                    >
                       {r === undefined ? "…" : r.allowed ? "ALLOWED" : "BLOCKED"}
                     </span>
                   </div>
@@ -98,9 +110,9 @@ export function Policy() {
             </div>
             {Object.values(results).some((r) => !r.allowed) && (
               <p className="mt-4 border-t border-edge pt-3 font-mono text-[11px] leading-relaxed text-fg-dim">
-                blocked ops carry a reason code — e.g. ACTION_PENDING / ADJUSTING / HALTED / DEGRADED —
-                decoded from the asset's runtime state. Protocols integrating CorpShift call this before
-                every state-changing operation.
+                blocked ops carry a reason code — e.g. ACTION_PENDING / ADJUSTING / HALTED /
+                DEGRADED — decoded from the asset's runtime state. Protocols integrating CorpShift
+                call this before every state-changing operation.
               </p>
             )}
           </Card>

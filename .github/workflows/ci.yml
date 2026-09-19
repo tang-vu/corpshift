@@ -1,0 +1,69 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: fmt
+        working-directory: packages/contracts
+        run: forge fmt --check
+      - name: build
+        working-directory: packages/contracts
+        run: forge build
+      - name: test
+        working-directory: packages/contracts
+        run: forge test
+
+  packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: web production build
+        working-directory: apps/web
+        run: pnpm build
+      - run: pnpm lint
+      - run: pnpm format:check
+
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: demo stack (anvil + deploy + indexer + api + web)
+        run: |
+          pnpm demo &
+          echo $! > demo.pid
+          for i in $(seq 1 120); do
+            curl -sf http://127.0.0.1:4000/health && break
+            sleep 2
+          done
+      - name: killer-demo acceptance
+        run: node scripts/demo-check.mjs
+      - name: teardown
+        if: always()
+        run: kill "$(cat demo.pid)" 2>/dev/null || true

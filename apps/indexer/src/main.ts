@@ -35,7 +35,9 @@ async function main() {
   const reconciler = new Reconciler(publicClient, cfg.manifest.registry, store, submitter);
 
   if (!cfg.dryRun && (!attester || !submitter)) {
-    console.warn("[indexer] no ATTESTER/OPERATOR key — running in observation mode (no submissions)");
+    console.warn(
+      "[indexer] no ATTESTER/OPERATOR key — running in observation mode (no submissions)",
+    );
   }
   console.log(
     `[indexer] mode=${cfg.sourceMode} chain=${cfg.chainId} registry=${cfg.manifest.registry} db=${cfg.dbPath} poll=${cfg.pollMs}ms${cfg.dryRun ? " DRY-RUN" : ""}`,
@@ -49,10 +51,7 @@ async function main() {
 
   while (running) {
     try {
-      const res = await tick(
-        { cfg, store, attester, submitter, events, reconciler },
-        mockNonce,
-      );
+      const res = await tick({ cfg, store, attester, submitter, events, reconciler }, mockNonce);
       if (cfg.sourceMode === "mock" && res.newActions > 0) {
         mockNonce++;
         store.setMeta("mockNonce", String(mockNonce));

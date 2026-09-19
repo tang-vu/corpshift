@@ -64,7 +64,10 @@ export class Submitter {
 
   /** Crank calls are best-effort: reverts (not yet effective, already
    *  resolved) are routine during polling, not errors. */
-  private async crank(fn: "activateAction" | "applyAction", actionId: Hex): Promise<Hex | undefined> {
+  private async crank(
+    fn: "activateAction" | "applyAction",
+    actionId: Hex,
+  ): Promise<Hex | undefined> {
     try {
       const txHash = await this.wallet.writeContract({
         account: this.account,
