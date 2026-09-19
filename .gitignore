@@ -1,4 +1,4 @@
-node_modules/
+﻿node_modules/
 dist/
 out/
 cache/
@@ -39,3 +39,6 @@ logs/
 .vscode/
 .claude/
 deployments/46630.json
+
+# AI assistant artifacts
+.devin/
