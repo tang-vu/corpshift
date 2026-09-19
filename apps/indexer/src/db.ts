@@ -8,6 +8,7 @@ import { dirname } from "node:path";
 
 export const SCHEMA_SQL = `
 PRAGMA journal_mode = WAL;
+PRAGMA busy_timeout = 5000;
 
 CREATE TABLE IF NOT EXISTS actions (
   action_id TEXT PRIMARY KEY,

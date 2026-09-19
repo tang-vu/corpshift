@@ -1,0 +1,81 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+
+  --color-ink: #07090d;
+  --color-panel: #0d1117;
+  --color-panel-2: #12181f;
+  --color-edge: #1e2630;
+  --color-edge-2: #2b3745;
+  --color-fg: #e6edf3;
+  --color-fg-dim: #8b98a5;
+  --color-fg-faint: #5a6673;
+  --color-green: #00d68f;
+  --color-green-dim: #0a2e24;
+  --color-amber: #f0b429;
+  --color-amber-dim: #33270a;
+  --color-red: #f4556b;
+  --color-red-dim: #33121a;
+  --color-cyan: #3ac8f5;
+  --color-violet: #9b8cff;
+}
+
+html {
+  background: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 15px;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 500px at 70% -10%, rgba(0, 214, 143, 0.05), transparent 60%),
+    radial-gradient(900px 400px at 10% 0%, rgba(58, 200, 245, 0.04), transparent 55%),
+    var(--color-ink);
+}
+
+::selection {
+  background: rgba(0, 214, 143, 0.25);
+}
+
+.font-mono,
+code,
+pre {
+  font-family: var(--font-mono);
+}
+
+/* thin scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-edge-2) transparent;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.live-dot {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+  animation: sweep 2.4s ease-in-out infinite;
+}
