@@ -11,11 +11,16 @@ const clients = buildClients(cfg);
 const { app, conductor } = buildApp(cfg, clients);
 
 // On local chains the demo conductor snapshots the post-deploy state so
-// `reset` can revert cleanly between runs.
-try {
-  await conductor().prepare();
-} catch {
-  /* demo keys absent — demo endpoints will 503 */
+// `reset` can revert cleanly between runs. Retry once — boot can race the
+// indexer's first SQLite write.
+for (let i = 0; i < 2; i++) {
+  try {
+    await conductor().prepare();
+    break;
+  } catch (e) {
+    if (i === 1) console.warn(`demo snapshot unavailable: ${(e as Error).message} — /v1/demo/reset will report it honestly`);
+    else await new Promise((r) => setTimeout(r, 750));
+  }
 }
 
 serve({ fetch: app.fetch, port: cfg.port }, (info) => {

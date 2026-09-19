@@ -168,14 +168,37 @@ export class DemoConductor {
     if (!this.isLocal) {
       return { step: "reset", ok: false, detail: "reset requires evm_revert — only available on local chains; redeploy for a fresh run", txs: [] };
     }
-    if (this.snapshotId) {
-      await this.pub.request({ method: "evm_revert" as never, params: [this.snapshotId] as never });
-      // snapshot ids are single-use — retake for the next reset
-      this.snapshotId = await this.pub.request({ method: "evm_snapshot" as never, params: [] as never }) as Hex;
+    if (this.busy) {
+      return { step: "reset", ok: false, detail: "a step is already in flight — wait for it to finish", txs: [] };
     }
-    this.setStep(0);
-    this.store.setMeta("demo.actionId", "");
-    return { step: "reset", ok: true, detail: "chain reverted to post-deploy snapshot", txs: [] };
+    this.busy = true;
+    try {
+      // self-heal: the boot-time snapshot may have raced chain/db startup
+      if (!this.snapshotId) await this.prepare().catch(() => undefined);
+      if (!this.snapshotId) {
+        return { step: "reset", ok: false, detail: "no evm snapshot available — restart `pnpm demo` for a clean baseline", txs: [] };
+      }
+      const reverted = await this.pub.request({ method: "evm_revert" as never, params: [this.snapshotId] as never }) as boolean;
+      // snapshot ids are single-use — retake for the next reset regardless
+      this.snapshotId = await this.pub.request({ method: "evm_snapshot" as never, params: [] as never }) as Hex;
+      if (reverted !== true) {
+        return { step: "reset", ok: false, detail: "evm snapshot was consumed (anvil restarted?) — restart `pnpm demo` for a clean baseline", txs: [] };
+      }
+      // verify the reverted state really is the deploy baseline — a snapshot
+      // taken mid-scenario would silently "reset" onto a dirty chain
+      const [mult, naiveRaw] = await Promise.all([
+        this.read<bigint>(this.m.mockStockToken, MockStockTokenAbi, "uiMultiplier"),
+        this.read<bigint>(this.m.naiveVault, NaiveVaultAbi, "collateralRaw", [this.user.address]),
+      ]);
+      if (mult !== 10n ** 18n || naiveRaw !== 0n) {
+        return { step: "reset", ok: false, detail: "snapshot baseline is dirty (chain diverged from deploy state) — restart `pnpm demo`", txs: [] };
+      }
+      this.setStep(0);
+      this.store.setMeta("demo.actionId", "");
+      return { step: "reset", ok: true, detail: "chain reverted to post-deploy snapshot", txs: [] };
+    } finally {
+      this.busy = false;
+    }
   }
 
   /* ------------------------- steps ------------------------- */
