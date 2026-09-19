@@ -11,3 +11,4 @@ deployments/
 test-results/
 playwright-report/
 docs/research/raw/
+packages/contracts/lib/
