@@ -1,0 +1,100 @@
+openapi: 3.0.3
+info:
+  title: CorpShift API
+  version: 0.1.0
+  description: >
+    CorpShift is the corporate-action runtime for onchain finance. This API
+    exposes indexed canonical corporate actions, live registry state, policy
+    checks, normalized exposure, and the deterministic demo conductor.
+servers:
+  - url: http://localhost:4000
+paths:
+  /health:
+    get:
+      summary: Service health + chain binding
+      responses:
+        "200": { description: ok }
+  /v1/source:
+    get:
+      summary: Ingestion source status (last tick, counts, normalization failures)
+      responses:
+        "200": { description: ok }
+  /v1/assets:
+    get:
+      summary: Registered assets with live runtime state
+      responses:
+        "200": { description: ok }
+  /v1/assets/{asset}:
+    get:
+      summary: Asset detail — state, factors, pending action, action history
+      parameters:
+        - { name: asset, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: ok }
+  /v1/assets/{asset}/actions:
+    get:
+      summary: Indexed actions for one asset
+      parameters:
+        - { name: asset, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: ok }
+  /v1/actions:
+    get:
+      summary: Indexed canonical corporate actions (filterable)
+      parameters:
+        - { name: asset, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: integer } }
+        - { name: limit, in: query, schema: { type: integer } }
+      responses:
+        "200": { description: ok }
+  /v1/actions/{id}:
+    get:
+      summary: Action detail — evidence, payload, attestation, related events
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: ok }
+        "404": { description: not found }
+  /v1/policy/{asset}/{op}:
+    get:
+      summary: Policy decision for an operation on an asset (live onchain read)
+      parameters:
+        - { name: asset, in: path, required: true, schema: { type: string } }
+        - { name: op, in: path, required: true, schema: { type: integer, description: "PolicyOp enum index (0 Deposit … 8 PriceRead)" } }
+      responses:
+        "200": { description: ok }
+  /v1/exposure/{asset}/{account}:
+    get:
+      summary: Normalized economic exposure for an account (live onchain read)
+      parameters:
+        - { name: asset, in: path, required: true, schema: { type: string } }
+        - { name: account, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: ok }
+  /v1/events:
+    get:
+      summary: Indexed registry/token events
+      parameters:
+        - { name: asset, in: query, schema: { type: string } }
+        - { name: actionId, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer } }
+      responses:
+        "200": { description: ok }
+  /v1/demo/state:
+    get:
+      summary: Live demo scenario state — both vaults, asset state, factors
+      responses:
+        "200": { description: ok }
+        "503": { description: demo keys not configured }
+  /v1/demo/step:
+    post:
+      summary: Advance the killer scenario one step (real transactions)
+      responses:
+        "200": { description: step result — txs sent, reverts captured }
+        "503": { description: demo keys not configured }
+  /v1/demo/reset:
+    post:
+      summary: Revert the scenario (local chains only — evm_revert)
+      responses:
+        "200": { description: reset result }
+        "503": { description: demo keys not configured }

@@ -1,0 +1,34 @@
+{
+  "name": "@corpshift/indexer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CorpShift ingestion daemon: source → canonical → attest → submit → index → reconcile.",
+  "exports": {
+    "./db": { "types": "./src/db.ts", "default": "./src/db.ts" },
+    "./config": { "types": "./src/config.ts", "default": "./src/config.ts" },
+    "./sources": { "types": "./src/sources.ts", "default": "./src/sources.ts" },
+    "./pipeline": { "types": "./src/pipeline.ts", "default": "./src/pipeline.ts" },
+    "./reconciler": { "types": "./src/reconciler.ts", "default": "./src/reconciler.ts" },
+    "./eventlog": { "types": "./src/eventlog.ts", "default": "./src/eventlog.ts" },
+    "./attester": { "types": "./src/attester.ts", "default": "./src/attester.ts" },
+    "./submitter": { "types": "./src/submitter.ts", "default": "./src/submitter.ts" }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "start": "node --disable-warning=ExperimentalWarning src/main.ts"
+  },
+  "dependencies": {
+    "@corpshift/core": "workspace:*",
+    "@corpshift/sdk": "workspace:*",
+    "@corpshift/shared": "workspace:*",
+    "viem": "^2.31.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

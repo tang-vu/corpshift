@@ -1,0 +1,28 @@
+{
+  "name": "@corpshift/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CorpShift REST API — registry state, canonical actions, policy checks, exposure, and the demo conductor.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "start": "node --disable-warning=ExperimentalWarning src/main.ts",
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/main.ts"
+  },
+  "dependencies": {
+    "@corpshift/core": "workspace:*",
+    "@corpshift/indexer": "workspace:*",
+    "@corpshift/sdk": "workspace:*",
+    "@corpshift/shared": "workspace:*",
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.9",
+    "viem": "^2.31.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

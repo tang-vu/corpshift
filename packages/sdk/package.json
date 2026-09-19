@@ -1,0 +1,33 @@
+{
+  "name": "@corpshift/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CorpShift client SDK — registry reads, economic exposure, policy checks, and attested action submission.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./abi": {
+      "types": "./dist/abi/index.d.ts",
+      "default": "./dist/abi/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "gen:abi": "node ../../scripts/export-abi.mjs"
+  },
+  "dependencies": {
+    "@corpshift/core": "workspace:*",
+    "@corpshift/shared": "workspace:*",
+    "viem": "^2.31.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
