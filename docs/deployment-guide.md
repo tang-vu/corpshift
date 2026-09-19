@@ -21,7 +21,7 @@ pnpm demo
 3. indexer in `fixture` + `dry-run` — real captured Robinhood data indexed
    without interfering with the conductor's scenario
 4. api on `:4000` with demo keys wired to anvil accounts
-5. vite dev server on `:3000`
+5. vite dev server on `:8056`
 
 Then:
 
@@ -38,7 +38,7 @@ Env overrides: `CORPSHIFT_PORT_API`, `CORPSHIFT_PORT_WEB`, `ANVIL_PORT`,
 ```bash
 git submodule update --init --recursive   # forge-std
 docker compose up --build
-# http://localhost:3000/lab
+# http://localhost:8056/lab
 ```
 
 One container runs everything (`pnpm demo` as the entrypoint). The Dockerfile

@@ -3,7 +3,7 @@
   "awareVault": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
   "chainId": 31337,
   "demoMode": true,
-  "deployedAt": 1789800407,
+  "deployedAt": 1789806232,
   "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   "erc20Adapter": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
   "gitCommit": "unknown",

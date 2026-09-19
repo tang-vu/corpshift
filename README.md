@@ -36,14 +36,14 @@ Requires Node ≥ 24 and [Foundry](https://getfoundry.sh) (or Docker, below).
 ```bash
 pnpm install
 pnpm demo          # anvil → deploy → indexer → api → web (all real)
-# open http://localhost:3000/lab
+# open http://localhost:8056/lab
 pnpm demo:check    # deterministic acceptance run (13 assertions)
 ```
 
 Or fully containerized:
 
 ```bash
-docker compose up --build   # then open http://localhost:3000/lab
+docker compose up --build   # then open http://localhost:8056/lab
 ```
 
 **What the demo proves — with real transactions, not a simulation:**

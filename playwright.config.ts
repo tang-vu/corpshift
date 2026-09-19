@@ -5,7 +5,7 @@ import { defineConfig } from "@playwright/test";
  * or reachable via E2E_BASE_URL — tests drive REAL transactions, so the
  * api must have demo keys configured (demo.mjs does this).
  */
-const BASE = process.env.E2E_BASE_URL ?? "http://localhost:3000";
+const BASE = process.env.E2E_BASE_URL ?? "http://localhost:8056";
 
 export default defineConfig({
   testDir: "./test/e2e",

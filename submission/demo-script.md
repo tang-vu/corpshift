@@ -1,6 +1,6 @@
 # Demo script — ~4 minutes
 
-Setup: `pnpm demo` running, browser on `http://localhost:3000/lab`.
+Setup: `pnpm demo` running, browser on `http://localhost:8056/lab`.
 
 ---
 

@@ -23,7 +23,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const ANVIL_PORT = Number(process.env.ANVIL_PORT ?? 8545);
 const API_PORT = Number(process.env.CORPSHIFT_PORT_API ?? 4000);
-const WEB_PORT = Number(process.env.CORPSHIFT_PORT_WEB ?? 3000);
+const WEB_PORT = Number(process.env.CORPSHIFT_PORT_WEB ?? 8056);
 const RPC = `http://127.0.0.1:${ANVIL_PORT}`;
 
 // anvil/hardhat well-known keys
@@ -194,7 +194,7 @@ async function main() {
   run("web", vite, ["--port", String(WEB_PORT), "--strictPort"], {
     cwd: join(ROOT, "apps", "web"),
   });
-  await waitFor(`http://127.0.0.1:${WEB_PORT}/`, 90, "web");
+  await waitFor(`http://localhost:${WEB_PORT}/`, 90, "web");
 
   console.log();
   console.log("  \x1b[32m✓ CorpShift demo stack is live\x1b[0m");

@@ -48,7 +48,7 @@ Two identical vaults, same user, same 10 stk collateral, same $400 debt:
 Six steps — seed, attest, probe, execute, reconcile, liquidate — **21 real
 onchain transactions**, each linked in the UI's execution log.
 
-**Run it:** `pnpm install && pnpm demo` → `http://localhost:3000/lab`
+**Run it:** `pnpm install && pnpm demo` → `http://localhost:8056/lab`
 (or `docker compose up --build`). **Verify it:** `pnpm demo:check`
 (13 assertions) · `pnpm e2e` (Playwright, real browser) · `forge test`
 (61/61).

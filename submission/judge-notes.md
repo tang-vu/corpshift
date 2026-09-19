@@ -2,7 +2,7 @@
 
 ## The one thing to watch
 
-`http://localhost:3000/lab` — click through the six steps. The moment that
+`http://localhost:8056/lab` — click through the six steps. The moment that
 matters is **Liquidation test**: the naive vault seizes a healthy $1,000
 position while the aware vault's identical position stays at HF 2.00. Same
 chain, same block range, same user — the only difference is whether the

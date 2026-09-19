@@ -34,7 +34,7 @@
 git submodule update --init --recursive
 pnpm install
 pnpm demo          # wait for "demo stack is live"
-# → open http://localhost:3000/lab, click through 6 steps
+# → open http://localhost:8056/lab, click through 6 steps
 pnpm demo:check    # in a second terminal — 13 green checks
 ```
 

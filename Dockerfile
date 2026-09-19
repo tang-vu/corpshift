@@ -3,8 +3,8 @@
 # anvil (local chain) → forge deploy → indexer → api → web.
 #
 #   docker build -t corpshift .
-#   docker run --rm -p 3000:3000 -p 4000:4000 -p 8545:8545 corpshift
-#   open http://localhost:3000/lab
+#   docker run --rm -p 8056:8056 -p 4000:4000 -p 8545:8545 corpshift
+#   open http://localhost:8056/lab
 #
 # The build context must include the forge-std submodule
 # (git submodule update --init --recursive) — the RUN step below
@@ -39,7 +39,7 @@ COPY . .
 RUN cd packages/contracts \
  && ([ -f lib/forge-std/src/Test.sol ] || forge install foundry-rs/forge-std --no-git)
 
-EXPOSE 3000 4000 8545
+EXPOSE 8056 4000 8545
 
 HEALTHCHECK --interval=10s --timeout=5s --start-period=90s --retries=30 \
   CMD node -e "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
