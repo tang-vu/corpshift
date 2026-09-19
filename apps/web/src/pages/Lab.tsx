@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { api, type DemoState, type DemoStepResult, type VaultView } from "../lib/api";
 import { Card, Empty, HexLink, StateBadge, Stat } from "../components/ui";
-import { fmt18, fmtHf, fmtMult, fmtPrice8, fmtUsd6 } from "../lib/format";
+import { fmt18, fmtHf, fmtMult, fmtPrice8, fmtUsd6, shortHex, timeUntil } from "../lib/format";
 
 const STEPS = [
   {
@@ -23,34 +24,82 @@ function hfTone(v: string): string {
   return n >= 1.5 ? "text-green" : n >= 1 ? "text-amber" : "text-red";
 }
 
+/** The demo scenario walks the canonical economic-action path. The final
+ *  ACTIVE node lights once reconcile restores safe operation. */
+const RAIL = ["ACTIVE", "ACTION_PENDING", "ADJUSTING", "ACTIVE"];
+
+function StateRail({ assetState, step }: { assetState: string; step: number }) {
+  const idx =
+    assetState === "ACTION_PENDING"
+      ? 1
+      : assetState === "ADJUSTING"
+        ? 2
+        : assetState === "ACTIVE" && step >= 5
+          ? 3
+          : assetState === "ACTIVE"
+            ? 0
+            : -1; // HALTED etc. — off the canonical path
+  return (
+    <div className="flex items-center gap-1 overflow-x-auto">
+      {RAIL.map((s, i) => (
+        <div key={i} className="flex items-center gap-1">
+          <div
+            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10px] font-semibold tracking-wide whitespace-nowrap ${
+              i === idx
+                ? "border-amber/50 bg-amber-dim/50 text-amber"
+                : i < idx
+                  ? "border-green/40 bg-green-dim/40 text-green"
+                  : "border-edge bg-panel text-fg-faint"
+            }`}
+          >
+            {i < idx && <span>✓</span>}
+            {i === idx && <span className="live-dot inline-block h-1 w-1 rounded-full bg-amber" />}
+            {s}
+            {i === 3 && idx === 3 && <span className="text-green">restored</span>}
+          </div>
+          {i < RAIL.length - 1 && (
+            <span className={`text-[10px] ${i < idx ? "text-green" : "text-fg-faint"}`}>→</span>
+          )}
+        </div>
+      ))}
+      {idx === -1 && <StateBadge state={assetState} />}
+    </div>
+  );
+}
+
 function VaultPanel({
   name,
   tag,
   tone,
   v,
-  dead,
+  liquidated,
 }: {
   name: string;
   tag: string;
   tone: "naive" | "aware";
   v: VaultView;
-  dead?: boolean;
+  liquidated?: boolean;
 }) {
   const accent = tone === "naive" ? "border-red/30" : "border-green/30";
   const hf = fmtHf(v.healthFactor);
-  const deadState = dead || v.collateralRaw === "0";
+  const empty = v.collateralRaw === "0";
   return (
     <div
-      className={`relative rounded-lg border ${accent} bg-panel-2 p-4 ${deadState ? "opacity-70" : ""}`}
+      className={`relative rounded-lg border ${accent} bg-panel-2 p-4 ${liquidated ? "opacity-70" : ""}`}
     >
       <div className="flex items-center justify-between">
         <div>
           <div className="text-[14px] font-bold">{name}</div>
           <div className="font-mono text-[10px] tracking-wide text-fg-faint">{tag}</div>
         </div>
-        {deadState && (
+        {liquidated && (
           <span className="rounded border border-red/40 bg-red-dim px-2 py-0.5 font-mono text-[10px] font-bold text-red">
             LIQUIDATED
+          </span>
+        )}
+        {!liquidated && empty && (
+          <span className="rounded border border-edge-2 bg-panel px-2 py-0.5 font-mono text-[10px] tracking-wide text-fg-faint">
+            no position
           </span>
         )}
       </div>
@@ -168,9 +217,33 @@ export function Lab() {
           </div>
         ))}
       </div>
+      {state.step < STEPS.length && (
+        <p className="-mt-3 text-center font-mono text-[11px] text-fg-faint">
+          next: <span className="text-amber">{STEPS[state.step]?.label}</span> —{" "}
+          {STEPS[state.step]?.desc}
+        </p>
+      )}
 
       {/* asset state strip */}
       <Card>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-edge pb-4">
+          <StateRail assetState={state.assetState} step={state.step} />
+          <div className="flex items-center gap-3">
+            {state.assetState === "ACTION_PENDING" && state.pendingEffectiveAt && (
+              <span className="rounded border border-amber/40 bg-amber-dim/40 px-2 py-1 font-mono text-[11px] text-amber">
+                effective in {timeUntil(state.pendingEffectiveAt)}
+              </span>
+            )}
+            {state.demoActionId && (
+              <Link
+                to={`/actions/${state.demoActionId}`}
+                className="font-mono text-[11px] text-cyan hover:underline"
+              >
+                attested action {shortHex(state.demoActionId)} →
+              </Link>
+            )}
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-faint">
@@ -195,6 +268,7 @@ export function Lab() {
             tag="reads raw ERC-20 balances"
             tone="naive"
             v={state.vaults.naive}
+            liquidated={state.step >= 6 && state.vaults.naive.collateralRaw === "0"}
           />
           <p className="mt-2 px-1 font-mono text-[11px] leading-relaxed text-fg-faint">
             collateralValue = rawBalance × price — blind to the multiplier
@@ -206,12 +280,52 @@ export function Lab() {
             tag="reads CorpShift economic units"
             tone="aware"
             v={state.vaults.aware}
+            liquidated={state.step >= 6 && state.vaults.aware.collateralRaw === "0"}
           />
           <p className="mt-2 px-1 font-mono text-[11px] leading-relaxed text-fg-faint">
             collateralValue = economicUnits(raw × factor) × price — plus policy gates on every op
           </p>
         </div>
       </div>
+
+      {/* verdict — the money shot once the scenario completes */}
+      {state.step >= 6 && (
+        <Card className="border-green/25">
+          <div className="text-center">
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-fg-faint">
+              verdict — same chain · same user · same action
+            </div>
+            <div className="mt-4 grid gap-6 sm:grid-cols-2">
+              <div>
+                <div className="font-mono text-4xl font-extrabold text-red">$0</div>
+                <div className="mt-1 text-[12px] text-fg-dim">
+                  naive vault seized a healthy <strong className="text-fg">$1,000</strong> position
+                </div>
+                <div className="mt-1 font-mono text-[10px] text-red/80">
+                  wrongful liquidation — raw-balance math
+                </div>
+              </div>
+              <div>
+                <div className="font-mono text-4xl font-extrabold text-green">
+                  ${fmt18(state.vaults.aware.collateralValue, 0)}
+                </div>
+                <div className="mt-1 text-[12px] text-fg-dim">
+                  aware vault kept the position at{" "}
+                  <strong className="text-fg">HF {fmtHf(state.vaults.aware.healthFactor)}</strong>
+                </div>
+                <div className="mt-1 font-mono text-[10px] text-green/80">
+                  protected — normalized units + policy gates
+                </div>
+              </div>
+            </div>
+            <p className="mx-auto mt-5 max-w-xl border-t border-edge pt-4 text-[12px] leading-relaxed text-fg-dim">
+              The 4:1 split was value-neutral — the only variable was whether the protocol asked
+              CorpShift what the collateral <em>means</em>. Every step above is a real transaction
+              against the deployed registry; reset and run it again.
+            </p>
+          </div>
+        </Card>
+      )}
 
       {/* execution log */}
       {log.length > 0 && (

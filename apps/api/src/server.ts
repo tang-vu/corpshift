@@ -5,6 +5,7 @@
  */
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { logger } from "hono/logger";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -74,6 +75,7 @@ export function buildApp(cfg: ApiConfig, clients: ChainClients) {
   };
 
   app.use("*", cors());
+  app.use("*", logger());
 
   /* ------------------------- meta ------------------------- */
 
@@ -138,13 +140,26 @@ export function buildApp(cfg: ApiConfig, clients: ChainClients) {
   });
 
   app.get("/v1/assets/:asset", async (c) => {
-    const asset = addr(c.req.param("asset"));
-    const [state, factor, verified, pending] = await Promise.all([
-      cs.assetState(asset),
-      cs.normalizationFactor(asset),
-      cs.verifiedFactor(asset),
-      cs.pendingAction(asset),
-    ]);
+    let asset: Address;
+    try {
+      asset = addr(c.req.param("asset"));
+    } catch {
+      return c.json({ error: "invalid asset address" }, 400);
+    }
+    // registry reads revert for assets that were never registered on this
+    // chain (e.g. fixture actions referencing mainnet tokens) — report it
+    // as a clean 404 rather than an opaque 500
+    let state: AssetState, factor: bigint, verified: bigint, pending: string;
+    try {
+      [state, factor, verified, pending] = (await Promise.all([
+        cs.assetState(asset),
+        cs.normalizationFactor(asset),
+        cs.verifiedFactor(asset),
+        cs.pendingAction(asset),
+      ])) as [AssetState, bigint, bigint, string];
+    } catch {
+      return c.json({ error: "asset is not registered on this chain" }, 404);
+    }
     const history = db()
       .listActions({ asset })
       .map((r) => actionJson(r, cfg.chainId));

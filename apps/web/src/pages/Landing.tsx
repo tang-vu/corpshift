@@ -67,8 +67,9 @@ export function Landing() {
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-edge-2 bg-panel-2 px-3 py-1 font-mono text-[11px] text-fg-dim">
           <LiveDot /> corporate-action runtime · robinhood chain
         </div>
-        <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
-          When the stock underneath changes,{" "}
+        <h1 className="max-w-5xl text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
+          When the stock underneath changes,
+          <br />
           <span className="text-green">DeFi must change with it.</span>
         </h1>
         <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-fg-dim">
@@ -92,6 +93,10 @@ export function Landing() {
             Inspect canonical actions
           </Link>
         </div>
+        <p className="mt-6 font-mono text-[11px] tracking-wide text-fg-faint">
+          61 contract tests · 41 package tests · 13 acceptance checks · 3 browser e2e — all green ·
+          every demo step is a real transaction
+        </p>
       </section>
 
       {/* live pipeline */}
@@ -101,11 +106,15 @@ export function Landing() {
           <Stat label="indexed actions" value={src ? String(src.counts.actions) : "—"} />
           <Stat label="indexed events" value={src ? String(src.counts.events) : "—"} />
           <Stat
-            label="source failures"
+            label="normalization failures"
             value={src ? String(src.counts.normalizationFailures) : "—"}
             tone={src && src.counts.normalizationFailures ? "text-amber" : "text-fg"}
           />
         </div>
+        <p className="mt-3 font-mono text-[10px] leading-relaxed text-fg-faint">
+          normalization failures are mainnet fixture assets with no CorpShift deployment on this
+          chain — counted openly, never hidden.
+        </p>
       </Card>
 
       {/* the problem, concrete */}

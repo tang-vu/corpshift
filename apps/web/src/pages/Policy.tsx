@@ -4,16 +4,28 @@ import { Card, Empty, StateBadge } from "../components/ui";
 import { shortHex } from "../lib/format";
 
 const OPS = [
-  { id: 0, name: "DEPOSIT" },
-  { id: 1, name: "WITHDRAW" },
-  { id: 2, name: "BORROW" },
-  { id: 3, name: "LIQUIDATE" },
-  { id: 4, name: "CREATE_ORDER" },
-  { id: 5, name: "SETTLE" },
-  { id: 6, name: "TRANSFER" },
-  { id: 7, name: "USE_AS_COLLATERAL" },
-  { id: 8, name: "PRICE_READ" },
+  { id: 0, name: "DEPOSIT", short: "DEP" },
+  { id: 1, name: "WITHDRAW", short: "WDR" },
+  { id: 2, name: "BORROW", short: "BRW" },
+  { id: 3, name: "LIQUIDATE", short: "LIQ" },
+  { id: 4, name: "CREATE_ORDER", short: "ORD" },
+  { id: 5, name: "SETTLE", short: "STL" },
+  { id: 6, name: "TRANSFER", short: "TRF" },
+  { id: 7, name: "USE_AS_COLLATERAL", short: "COL" },
+  { id: 8, name: "PRICE_READ", short: "PRC" },
 ];
+
+/** Mirrors PolicyEngine._seedDefaults() — keep in sync with the contract. */
+const MATRIX: Record<string, boolean[]> = {
+  ACTIVE: [true, true, true, true, true, true, true, true, true],
+  ACTION_PENDING: [true, true, false, false, false, false, true, false, true],
+  ADJUSTING: [false, false, false, false, false, false, false, false, true],
+  HALTED: [true, true, false, false, false, false, false, false, true],
+  MIGRATING: [false, true, false, false, false, false, false, false, true],
+  REDEEMING: [false, true, false, false, false, true, false, false, true],
+  DEGRADED: [false, true, false, false, false, false, false, false, true],
+  UNSUPPORTED: [false, true, false, false, false, false, false, false, true],
+};
 
 export function Policy() {
   const [assets, setAssets] = useState<AssetRow[]>([]);
@@ -118,6 +130,57 @@ export function Policy() {
           </Card>
         </>
       )}
+
+      {/* seeded default matrix — the whole security surface, not just today */}
+      <Card
+        title="Default policy matrix"
+        sub="seeded into PolicyEngine at deploy — governance-tunable; PRICE_READ stays open in every state so consumers can keep observing"
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-mono text-[11px]">
+            <thead>
+              <tr className="border-b border-edge text-[9px] uppercase tracking-widest text-fg-faint">
+                <th className="pb-2 pr-3 font-semibold">state</th>
+                {OPS.map((op) => (
+                  <th key={op.id} className="pb-2 text-center font-semibold" title={op.name}>
+                    {op.short}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(MATRIX).map(([stateName, row]) => (
+                <tr
+                  key={stateName}
+                  className={`border-b border-edge/40 last:border-0 ${
+                    sel?.state === stateName ? "bg-panel-2" : ""
+                  }`}
+                >
+                  <td className="py-2 pr-3">
+                    <span
+                      className={sel?.state === stateName ? "font-bold text-amber" : "text-fg-dim"}
+                    >
+                      {stateName}
+                    </span>
+                  </td>
+                  {row.map((allowed, i) => (
+                    <td key={i} className="py-2 text-center">
+                      <span className={allowed ? "text-green" : "text-red/60"}>
+                        {allowed ? "✓" : "✗"}
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {sel && (
+          <p className="mt-3 border-t border-edge pt-3 font-mono text-[10px] text-fg-faint">
+            highlighted row = selected asset's current runtime state
+          </p>
+        )}
+      </Card>
     </div>
   );
 }

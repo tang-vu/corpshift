@@ -89,6 +89,7 @@ export interface DemoState {
   normalizationFactor: string;
   verifiedFactor: string;
   pendingActionId: string;
+  pendingEffectiveAt: number | null;
   demoActionId: string | null;
   uiMultiplier: string;
   price: string;

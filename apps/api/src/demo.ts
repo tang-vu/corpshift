@@ -45,6 +45,7 @@ export const DEMO_DEPOSIT = parseEther("10"); // 10 stock tokens
 export const DEMO_BORROW = 400_000_000n; //      $400 mUSDG (6dp)
 const NEW_MULTIPLIER = 4n * 10n ** 18n; //       4e18 (4:1 split)
 const POST_SPLIT_PRICE = 25n * 10n ** 8n; //     $25 (was $100)
+const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000" as Hex;
 
 export interface DemoStepResult {
   step: string;
@@ -618,6 +619,22 @@ export class DemoConductor {
         method: "evm_snapshot" as never,
         params: [] as never,
       })) as Hex;
+      // Resync persisted step metadata when the chain sits at the deploy
+      // baseline — demo.step survives redeploys in the shared db and would
+      // otherwise claim step N on a fresh chain. If the chain is dirty the
+      // scenario is mid-flight and the stored step stays authoritative.
+      try {
+        const [mult, naiveRaw] = await Promise.all([
+          this.read<bigint>(this.m.mockStockToken, MockStockTokenAbi, "uiMultiplier"),
+          this.read<bigint>(this.m.naiveVault, NaiveVaultAbi, "collateralRaw", [this.user.address]),
+        ]);
+        if (mult === 10n ** 18n && naiveRaw === 0n) {
+          this.setStep(0);
+          this.store.setMeta("demo.actionId", "");
+        }
+      } catch {
+        /* manifest incomplete pre-deploy — step stays as stored */
+      }
     }
   }
 
@@ -664,6 +681,14 @@ export class DemoConductor {
       this.read<bigint>(m.mockStockToken, MockStockTokenAbi, "balanceOf", [user]),
       this.read<bigint>(m.mockUSDG, MockUSDGAbi, "balanceOf", [user]),
     ]);
+    let pendingEffectiveAt: number | null = null;
+    if (pending !== ZERO_BYTES32) {
+      try {
+        pendingEffectiveAt = Number((await this.clients.corpshift.getAction(pending)).effectiveAt);
+      } catch {
+        /* pending id not yet readable — countdown just stays hidden */
+      }
+    }
     return {
       step: this.metaStep(),
       user,
@@ -672,7 +697,8 @@ export class DemoConductor {
       normalizationFactor: factor.toString(),
       verifiedFactor: verifiedFactor.toString(),
       pendingActionId: pending,
-      demoActionId: this.store.getMeta("demo.actionId") ?? null,
+      pendingEffectiveAt,
+      demoActionId: this.store.getMeta("demo.actionId") || null,
       uiMultiplier: multiplier.toString(),
       price: price.toString(),
       userStockBalance: stockBal.toString(),

@@ -8,7 +8,7 @@ import { dirname } from "node:path";
 
 export const SCHEMA_SQL = `
 PRAGMA journal_mode = WAL;
-PRAGMA busy_timeout = 5000;
+PRAGMA busy_timeout = 30000;
 
 CREATE TABLE IF NOT EXISTS actions (
   action_id TEXT PRIMARY KEY,
@@ -74,6 +74,9 @@ CREATE TABLE IF NOT EXISTS normalization_failures (
   raw_json TEXT NOT NULL,
   observed_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
+-- collapse duplicate observations written before dedupe existed (idempotent)
+DELETE FROM normalization_failures
+WHERE id NOT IN (SELECT MIN(id) FROM normalization_failures GROUP BY source_event_id);
 `;
 
 export interface ActionRow {
@@ -143,7 +146,9 @@ export class Store {
        VALUES (?,?,?,?,?)`,
     );
     this.stmt.insertNormFail = p(
-      "INSERT INTO normalization_failures(source_event_id, reason, raw_json) VALUES (?,?,?)",
+      `INSERT INTO normalization_failures(source_event_id, reason, raw_json)
+       SELECT ?,?,?
+       WHERE NOT EXISTS (SELECT 1 FROM normalization_failures WHERE source_event_id = ?)`,
     );
     this.stmt.getMeta = p("SELECT value FROM meta WHERE key = ?");
     this.stmt.setMeta = p(
@@ -165,36 +170,58 @@ export class Store {
     }
   }
 
+  /** busy_timeout already covers lock waits, but Windows file locks can
+   *  still surface transient "database is locked" — retry briefly before
+   *  failing (errcode 5 = SQLITE_BUSY). */
+  private writeWithRetry(fn: () => void): void {
+    for (let i = 0; ; i++) {
+      try {
+        fn();
+        return;
+      } catch (e) {
+        const err = e as Error & { errcode?: number };
+        const busy = err.errcode === 5 || err.message.includes("locked");
+        if (i >= 4 || !busy) throw e;
+        const until = Date.now() + 100 * (i + 1);
+        while (Date.now() < until) {
+          /* spin — DatabaseSync has no async path */
+        }
+      }
+    }
+  }
+
   getMeta(key: string): string | undefined {
     const row = this.stmt.getMeta!.get(key) as { value: string } | undefined;
     return row?.value;
   }
 
   setMeta(key: string, value: string): void {
-    this.stmt.setMeta!.run(key, value);
+    this.writeWithRetry(() => this.stmt.setMeta!.run(key, value));
   }
 
   upsertAction(a: Omit<ActionRow, "created_at">): void {
-    this.stmt.upsertAction!.run(
-      a.action_id,
-      a.source_hash,
-      a.source_event_id,
-      a.asset.toLowerCase(),
-      a.action_type,
-      a.status,
-      a.announced_at,
-      a.effective_at,
-      a.observed_at,
-      a.submitted_at,
-      a.params,
-      a.params_hash,
-      a.evidence_hash,
-      a.evidence_json,
-      a.attested_by,
-      a.tx_hash,
-      a.chain_id,
-      a.trust,
-      a.error,
+    this.writeWithRetry(() =>
+      this.stmt.upsertAction!.run(
+        a.action_id,
+        a.source_hash,
+        a.source_event_id,
+        a.asset.toLowerCase(),
+        a.action_type,
+        a.status,
+        a.announced_at,
+        a.effective_at,
+        a.observed_at,
+        a.submitted_at,
+        a.params,
+        a.params_hash,
+        a.evidence_hash,
+        a.evidence_json,
+        a.attested_by,
+        a.tx_hash,
+        a.chain_id,
+        a.trust,
+        a.error,
+      ),
     );
   }
 
@@ -227,14 +254,16 @@ export class Store {
   }
 
   insertEvent(e: Omit<EventRow, "id" | "indexed_at">): void {
-    this.stmt.insertEvent!.run(
-      e.block_number,
-      e.tx_hash,
-      e.log_index,
-      e.event_name,
-      e.asset,
-      e.action_id,
-      e.data,
+    this.writeWithRetry(() =>
+      this.stmt.insertEvent!.run(
+        e.block_number,
+        e.tx_hash,
+        e.log_index,
+        e.event_name,
+        e.asset,
+        e.action_id,
+        e.data,
+      ),
     );
   }
 
@@ -265,17 +294,21 @@ export class Store {
     pendingFactor?: bigint | undefined;
     pendingEffectiveAt?: bigint | undefined;
   }): void {
-    this.stmt.insertNormObs!.run(
-      o.asset.toLowerCase(),
-      Number(o.blockNumber),
-      o.factor.toString(),
-      o.pendingFactor?.toString() ?? null,
-      o.pendingEffectiveAt !== undefined ? Number(o.pendingEffectiveAt) : null,
+    this.writeWithRetry(() =>
+      this.stmt.insertNormObs!.run(
+        o.asset.toLowerCase(),
+        Number(o.blockNumber),
+        o.factor.toString(),
+        o.pendingFactor?.toString() ?? null,
+        o.pendingEffectiveAt !== undefined ? Number(o.pendingEffectiveAt) : null,
+      ),
     );
   }
 
   insertNormalizationFailure(sourceEventId: string, reason: string, raw: unknown): void {
-    this.stmt.insertNormFail!.run(sourceEventId, reason, JSON.stringify(raw));
+    this.writeWithRetry(() =>
+      this.stmt.insertNormFail!.run(sourceEventId, reason, JSON.stringify(raw), sourceEventId),
+    );
   }
 
   listNormalizationFailures(limit = 100) {
