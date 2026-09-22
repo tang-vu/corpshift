@@ -60,17 +60,23 @@ jobs:
           echo $! > demo.pid
           ready=0
           for i in $(seq 1 120); do
-            if curl -sf http://127.0.0.1:4000/health && curl -sf http://127.0.0.1:8056/ > /dev/null; then
+            if node --input-type=module -e 'const responses = await Promise.all([fetch("http://localhost:4000/health"), fetch("http://localhost:8056/")]); process.exit(responses.every(r => r.ok) ? 0 : 1)' 2>/dev/null; then
               ready=1
               break
             fi
             sleep 2
           done
-          test "$ready" = 1
+          if [ "$ready" != 1 ]; then
+            tail -n 80 data/demo-logs/*.log
+            exit 1
+          fi
       - name: killer-demo acceptance
         run: node scripts/demo-check.mjs
       - name: browser regression checks
         run: pnpm e2e
+      - name: service diagnostics
+        if: failure()
+        run: tail -n 80 data/demo-logs/*.log
       - name: teardown
         if: always()
         run: kill "$(cat demo.pid)" 2>/dev/null || true
