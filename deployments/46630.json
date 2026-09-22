@@ -1,0 +1,18 @@
+{
+  "attester": "0x04E7a73d34A203bd6EDa3326baf5ca20A4CffC4A",
+  "awareVault": "0x9D4eA2FC8208C2fF9f19C6d5EDC8CD3789Bde6BB",
+  "chainId": 46630,
+  "demoMode": true,
+  "deployedAt": 1790084604,
+  "deployer": "0x04E7a73d34A203bd6EDa3326baf5ca20A4CffC4A",
+  "erc20Adapter": "0x581f3D65B7F55Fe0A1d592a10944d5B3d5e520D9",
+  "gitCommit": "unknown",
+  "mockStockToken": "0x6386165C12d0C9C27B781225a200868d72ED1daE",
+  "mockUSDG": "0xD36cD1fF70aEBC21856FF3A4032F926F5b463566",
+  "naiveVault": "0xdd85830592576062768462C3A8406d36FEFC7542",
+  "policyEngine": "0x89f0Dc6224c1ED0637574a8c4363aad2dA5f78cb",
+  "priceOracle": "0xc2455fa227e6504aCA2099555ee27e2EE1565891",
+  "registry": "0x9914779e3ae832922CA077943cb1d024afD0bb73",
+  "settlementVault": "0x917d131D65759631dbD02b1996A730FB0cc3365f",
+  "stockTokenAdapter": "0x457B8156D4C8c494fedf96D10798F943dD0F1A44"
+}

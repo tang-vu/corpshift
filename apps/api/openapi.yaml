@@ -88,6 +88,7 @@ paths:
   /v1/demo/state:
     get:
       summary: Live demo scenario state — both vaults, asset state, factors
+      description: Includes the configured chainId, registry and demo contract addresses for receipt verification. Reads are not pinned to a single block.
       responses:
         "200": { description: ok }
         "503": { description: demo keys not configured }

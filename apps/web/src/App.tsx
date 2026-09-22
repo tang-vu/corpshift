@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { api, type Health } from "./lib/api";
 import { LiveDot } from "./components/ui";
 import { Landing } from "./pages/Landing";
@@ -20,34 +20,24 @@ const NAV = [
 
 function Wordmark() {
   return (
-    <NavLink to="/" className="flex items-center gap-2.5">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path
-          d="M4 16 L10 8 L14 12 L20 4"
-          stroke="var(--color-green)"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M14 4 H20 V10"
-          stroke="var(--color-green)"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <span className="text-[15px] font-bold tracking-tight">
-        Corp<span className="text-green">Shift</span>
+    <NavLink to="/" className="wordmark" aria-label="CorpShift overview">
+      <span className="brand-symbol">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 4H20L16 10H1L5 4ZM8 14H23L19 20H4L8 14Z" fill="#fff4e3" />
+        </svg>
       </span>
-      <span className="hidden rounded border border-edge-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-widest text-fg-faint sm:inline">
-        RUNTIME
+      <span>
+        CorpShift<span className="text-accent">.</span>
       </span>
     </NavLink>
   );
 }
 
 export function App() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [pathname]);
   const [health, setHealth] = useState<Health | null>(null);
   const [down, setDown] = useState(false);
 
@@ -65,26 +55,25 @@ export function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-20 border-b border-edge bg-ink/85 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
+      <header className="app-header">
+        <div className="header-inner">
           <Wordmark />
-          <nav className="flex items-center gap-1">
+          <nav className="app-nav" aria-label="Main navigation">
             {NAV.map((n) => (
               <NavLink
                 key={n.to}
                 to={n.to}
                 end={n.end === true}
-                className={({ isActive }) =>
-                  `rounded px-3 py-1.5 text-[13px] font-medium transition-colors ${
-                    isActive ? "bg-panel-2 text-green" : "text-fg-dim hover:text-fg"
-                  }`
-                }
+                className={({ isActive }) => (isActive ? "active" : "")}
               >
                 {n.label}
               </NavLink>
             ))}
           </nav>
-          <div className="flex items-center gap-2 font-mono text-[11px] text-fg-dim">
+          <div className="header-status">
             {down ? (
               <>
                 <LiveDot tone="bg-red" /> <span className="text-red">api offline</span>
@@ -100,7 +89,7 @@ export function App() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+      <main className="app-main" id="main-content">
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/assets" element={<Assets />} />
@@ -112,8 +101,10 @@ export function App() {
         </Routes>
       </main>
 
-      <footer className="border-t border-edge py-5 text-center font-mono text-[11px] text-fg-faint">
-        CorpShift — the corporate-action runtime for onchain finance · built for Robinhood Chain
+      <footer className="app-footer">
+        <strong>CorpShift.</strong>
+        <span>CORPORATE ACTIONS. ECONOMIC CONTINUITY.</span>
+        <span>BUILT FOR ROBINHOOD CHAIN ↗</span>
       </footer>
     </div>
   );

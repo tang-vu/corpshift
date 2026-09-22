@@ -39,8 +39,19 @@ const bin = (name) => {
 };
 
 const kids = [];
-const logDir = join(ROOT, "data", "demo-logs");
+const logDir = join(
+  ROOT,
+  "data",
+  process.env.CORPSHIFT_PUBLIC === "1" ? "public-logs" : "demo-logs",
+);
 mkdirSync(logDir, { recursive: true });
+// Fresh public chains need fresh indexes; retain earlier runs separately.
+const publicSessions = join(ROOT, "data", "public-sessions");
+if (process.env.CORPSHIFT_PUBLIC === "1") mkdirSync(publicSessions, { recursive: true });
+const dbPath =
+  process.env.CORPSHIFT_PUBLIC === "1"
+    ? join(publicSessions, `${Date.now()}.sqlite`)
+    : (process.env.CORPSHIFT_DB ?? join(ROOT, "data", "indexer-31337.sqlite"));
 
 function log(name, ...args) {
   console.log(`\x1b[36m[demo]\x1b[0m ${name}`, ...args);
@@ -51,13 +62,21 @@ function run(name, cmd, args, opts = {}) {
   const out = createWriteStream(join(logDir, `${name}.log`), { flags: "a" });
   const p = spawn(cmd, args, {
     cwd: ROOT,
-    shell: process.platform === "win32",
+    shell: process.platform === "win32" && cmd.endsWith(".cmd"),
     stdio: ["ignore", "pipe", "pipe"],
     ...opts,
   });
   p.stdout.pipe(out);
   p.stderr.pipe(out);
   kids.push(p);
+  p.on("error", (e) => {
+    log(`${name} failed:`, e.message);
+    shutdown(1);
+  });
+  p.on("exit", (code) => {
+    log(`${name} exited:`, code);
+    shutdown(1);
+  });
   return p;
 }
 
@@ -101,7 +120,10 @@ async function portFree(port) {
   }
 }
 
-function shutdown() {
+let stopping = false;
+function shutdown(code = 0) {
+  if (stopping) return;
+  stopping = true;
   for (const p of kids) {
     try {
       p.kill("SIGTERM");
@@ -109,13 +131,34 @@ function shutdown() {
       /* already gone */
     }
   }
-  process.exit(0);
+  process.exit(code);
 }
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+process.on("SIGINT", () => shutdown(0));
+process.on("SIGTERM", () => shutdown(0));
+process.on("message", (message) => {
+  if (message === "shutdown") shutdown(0);
+});
 
 async function main() {
   log("root:", ROOT);
+
+  // Workspace exports point at dist/. A fresh checkout has no compiled
+  // packages, so the documented one-command demo must build these first.
+  const build = spawnSync(
+    process.platform === "win32" ? "pnpm.cmd" : "pnpm",
+    [
+      "--filter",
+      "@corpshift/core",
+      "--filter",
+      "@corpshift/shared",
+      "--filter",
+      "@corpshift/sdk",
+      "-r",
+      "build",
+    ],
+    { cwd: ROOT, stdio: "inherit", shell: process.platform === "win32" },
+  );
+  if (build.status !== 0) throw new Error("workspace build failed — see output above");
 
   // 1. anvil
   if (process.env.SKIP_ANVIL !== "1" && (await portFree(ANVIL_PORT))) {
@@ -150,7 +193,7 @@ async function main() {
     ...process.env,
     CORPSHIFT_CHAIN_ID: "31337",
     CORPSHIFT_RPC_URL: RPC,
-    CORPSHIFT_DB: join(ROOT, "data", "indexer-31337.sqlite"),
+    CORPSHIFT_DB: dbPath,
     CORPSHIFT_OPERATOR_KEY: K0,
     CORPSHIFT_ATTESTER_KEY: K0,
   };
@@ -187,13 +230,18 @@ async function main() {
   // 5. web
   const vite = join(
     ROOT,
+    "apps",
+    "web",
     "node_modules",
     ".bin",
     process.platform === "win32" ? "vite.cmd" : "vite",
   );
-  run("web", vite, ["--port", String(WEB_PORT), "--strictPort"], {
-    cwd: join(ROOT, "apps", "web"),
-  });
+  if (process.env.CORPSHIFT_PUBLIC === "1") {
+    run("web", process.execPath, ["scripts/serve-public.mjs"]);
+  } else
+    run("web", vite, ["--port", String(WEB_PORT), "--strictPort"], {
+      cwd: join(ROOT, "apps", "web"),
+    });
   await waitFor(`http://localhost:${WEB_PORT}/`, 90, "web");
 
   console.log();
@@ -211,5 +259,5 @@ async function main() {
 
 main().catch((e) => {
   console.error(`\x1b[31m[demo] ${e.message}\x1b[0m`);
-  shutdown();
+  shutdown(1);
 });

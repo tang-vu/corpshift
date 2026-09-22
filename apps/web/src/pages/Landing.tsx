@@ -1,174 +1,275 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type SourceStatus } from "../lib/api";
-import { Card, Stat, LiveDot } from "../components/ui";
+import testnet from "../../../../deployments/46630.json";
 
-const FLOW = [
-  { label: "Stock Token", sub: "ERC-8056 · uiMultiplier()", tone: "cyan" },
-  { label: "Corporate action", sub: "splits · dividends · halts", tone: "violet" },
-  { label: "Normalizer", sub: "canonical schema", tone: "fg-dim" },
-  { label: "Attested action", sub: "EIP-712 verified", tone: "amber" },
-  { label: "ActionRegistry", sub: "state transitions", tone: "green" },
-  { label: "Policy hooks", sub: "lending · vaults · agents", tone: "green" },
-];
-
-function FlowDiagram() {
+function SplitInstrument() {
+  const [split, setSplit] = useState(false);
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-      {FLOW.map((f, i) => (
-        <div key={f.label} className="relative">
-          <div
-            className={`rounded-lg border border-edge bg-panel-2 px-3 py-3 text-center ${
-              i === FLOW.length - 1 ? "border-green/40" : ""
-            }`}
-          >
-            <div
-              className={`text-[12px] font-semibold ${
-                f.tone === "green"
-                  ? "text-green"
-                  : f.tone === "amber"
-                    ? "text-amber"
-                    : f.tone === "cyan"
-                      ? "text-cyan"
-                      : f.tone === "violet"
-                        ? "text-violet"
-                        : "text-fg"
-              }`}
-            >
-              {f.label}
+    <div className={`split-instrument ${split ? "is-split" : ""}`}>
+      <div className="instrument-top">
+        <span>FIG. 01 / ECONOMIC CONTINUITY</span>
+        <span className="instrument-cross">+</span>
+      </div>
+      <div className="instrument-stage" aria-hidden="true">
+        <div className="instrument-grid" />
+        <div className="axis-label axis-top">CORPORATE ACTION</div>
+        <div className="share-stack">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className={`share-sheet share-${i}`}>
+              <span>XYZT</span>
+              <div className="sheet-mark">{split ? "¼" : "1"}</div>
+              <div className="sheet-foot">
+                <span>ECONOMIC UNIT</span>
+                <span>{String(i + 1).padStart(2, "0")}</span>
+              </div>
             </div>
-            <div className="mt-1 font-mono text-[10px] text-fg-faint">{f.sub}</div>
-          </div>
-          {i < FLOW.length - 1 && (
-            <div className="absolute -right-2 top-1/2 hidden -translate-y-1/2 text-fg-faint lg:block">
-              →
-            </div>
-          )}
+          ))}
         </div>
-      ))}
+        <div className="axis-label axis-bottom">
+          <span>10 RAW TOKENS</span>
+          <span>{split ? "40 ECONOMIC UNITS" : "10 ECONOMIC UNITS"}</span>
+        </div>
+        <span className="coordinate coordinate-left">Y / VALUE</span>
+        <span className="coordinate coordinate-right">X / TIME</span>
+      </div>
+      <div className="instrument-readout">
+        <div>
+          <span className="micro-label">Collateral value</span>
+          <strong aria-live="polite">
+            $1,000<span>.00</span>
+          </strong>
+        </div>
+        <span className="preserved-label">
+          <span /> VALUE PRESERVED
+        </span>
+      </div>
+      <div className="instrument-control">
+        <div className="split-switch" role="group" aria-label="Illustrate a stock split">
+          <button aria-pressed={!split} onClick={() => setSplit(false)}>
+            Before split <span>1:1</span>
+          </button>
+          <button aria-pressed={split} onClick={() => setSplit(true)}>
+            After split <span>4:1</span>
+          </button>
+        </div>
+        <span className="instrument-equation" aria-live="polite">
+          {split ? "40 × $25" : "10 × $100"}
+        </span>
+      </div>
+      <div className="instrument-disclaimer">
+        Interactive illustration · explore real transactions in Protocol Lab
+      </div>
     </div>
   );
 }
 
+const FLOW = [
+  ["Observe", "A corporate action arrives.", "Source evidence"],
+  ["Attest", "The event becomes verifiable.", "EIP-712 signature"],
+  ["Reconcile", "Onchain units catch up.", "Verified multiplier"],
+  ["Protect", "Protocols act on the right value.", "Policy + accounting"],
+];
+
 export function Landing() {
   const [src, setSrc] = useState<SourceStatus | null>(null);
-
+  const [sourceError, setSourceError] = useState(false);
   useEffect(() => {
     api
       .source()
       .then(setSrc)
-      .catch(() => {});
+      .catch(() => setSourceError(true));
   }, []);
-
   return (
-    <div className="space-y-10">
-      {/* hero */}
-      <section className="pt-6">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-edge-2 bg-panel-2 px-3 py-1 font-mono text-[11px] text-fg-dim">
-          <LiveDot /> corporate-action runtime · robinhood chain
+    <div className="editorial-home">
+      <div className="edition-line">
+        <span>INFRASTRUCTURE FOR TOKENIZED EQUITIES</span>
+        <span>RESEARCH → RUNTIME / 001</span>
+      </div>
+      <section className="editorial-hero">
+        <div className="hero-copy">
+          <div className="eyebrow">
+            <span className="small-square" /> THE CORPORATE-ACTION RUNTIME
+          </div>
+          <h1>
+            Change happens.
+            <br />
+            Value <em>stays.</em>
+          </h1>
+          <p className="hero-description">
+            Stocks split. Companies merge. Markets pause. Keep onchain collateral in proportion with
+            the asset underneath.
+          </p>
+          <div className="hero-actions">
+            <Link to="/lab" className="primary-link">
+              Enter Protocol Lab <span aria-hidden="true">↗</span>
+            </Link>
+            <a href="#mechanism" className="text-link">
+              See how it works <span aria-hidden="true">↓</span>
+            </a>
+          </div>
+          <div className="hero-footnote">
+            <span className="tiny-rule" />
+            <p>
+              Built for lending protocols.
+              <br />
+              <strong>Designed around economic correctness.</strong>
+            </p>
+          </div>
         </div>
-        <h1 className="max-w-5xl text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
-          When the stock underneath changes,
-          <br />
-          <span className="text-green">DeFi must change with it.</span>
-        </h1>
-        <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-fg-dim">
-          Stock Tokens are programmable — but splits, dividends, mergers, halts and redemptions
-          change their economic meaning. Protocols that read raw ERC-20 balances misvalue
-          collateral, execute unsafe operations, and keep stale assumptions forever.{" "}
-          <strong className="text-fg">CorpShift keeps DeFi economically correct</strong> when the
-          stock underneath a Stock Token changes.
-        </p>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link
-            to="/lab"
-            className="rounded-md bg-green px-5 py-2.5 text-[13px] font-bold text-ink transition hover:brightness-110"
-          >
-            Run the killer demo →
-          </Link>
-          <Link
-            to="/actions"
-            className="rounded-md border border-edge-2 bg-panel px-5 py-2.5 text-[13px] font-semibold text-fg transition hover:border-fg-faint"
-          >
-            Inspect canonical actions
-          </Link>
-        </div>
-        <p className="mt-6 font-mono text-[11px] tracking-wide text-fg-faint">
-          61 contract tests · 41 package tests · 13 acceptance checks · 3 browser e2e — all green ·
-          every demo step is a real transaction
-        </p>
+        <SplitInstrument />
       </section>
 
-      {/* live pipeline */}
-      <Card title="Live pipeline" sub="every layer is real — contracts, attestations, indexer, api">
-        <FlowDiagram />
-        <div className="mt-6 grid grid-cols-3 gap-4 border-t border-edge pt-4 sm:grid-cols-3">
-          <Stat label="indexed actions" value={src ? String(src.counts.actions) : "—"} />
-          <Stat label="indexed events" value={src ? String(src.counts.events) : "—"} />
-          <Stat
-            label="normalization failures"
-            value={src ? String(src.counts.normalizationFailures) : "—"}
-            tone={src && src.counts.normalizationFailures ? "text-amber" : "text-fg"}
-          />
+      <section className="deployment-band" aria-label="Testnet deployment">
+        <div className="deployment-title">
+          <span className="micro-label">PUBLIC DEPLOYMENT / 46630</span>
+          <h2>
+            On Robinhood Chain.
+            <br />
+            <em>Open to inspection.</em>
+          </h2>
         </div>
-        <p className="mt-3 font-mono text-[10px] leading-relaxed text-fg-faint">
-          normalization failures are mainnet fixture assets with no CorpShift deployment on this
-          chain — counted openly, never hidden.
-        </p>
-      </Card>
+        <div className="deployment-number">
+          <strong>
+            10<span>↗</span>
+          </strong>
+          <span>DEPLOYED CONTRACTS</span>
+        </div>
+        <div className="deployment-number">
+          <strong>
+            17<span>✓</span>
+          </strong>
+          <span>SUCCESSFUL RECEIPTS</span>
+        </div>
+        <div className="deployment-links">
+          <a
+            href={`https://explorer.testnet.chain.robinhood.com/address/${testnet.registry}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            View testnet registry <span>↗</span>
+          </a>
+          <a href="/proof/deployment.json" target="_blank" rel="noreferrer">
+            Deployment receipts <span>↗</span>
+          </a>
+          <p>
+            Testnet · mock stock & mUSDG
+            <br />
+            Verified September 22, 2026
+          </p>
+        </div>
+      </section>
 
-      {/* the problem, concrete */}
-      <section className="grid gap-4 lg:grid-cols-2">
-        <Card title="A 4:1 split, through a naive lens" sub="what raw-balance protocols see">
-          <div className="space-y-3 font-mono text-[13px]">
-            <div className="flex justify-between border-b border-edge pb-2">
-              <span className="text-fg-dim">position</span>
-              <span>10 XYZT · debt $400</span>
+      <section className="mechanism-section" id="mechanism">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">01 / THE MECHANISM</span>
+            <h2>
+              A change in the company.
+              <br />
+              <em>A precise response onchain.</em>
+            </h2>
+          </div>
+          <p>One canonical event connects source evidence to the decisions a protocol makes.</p>
+        </div>
+        <div className="mechanism-flow">
+          {FLOW.map(([title, description, detail], i) => (
+            <div className="mechanism-step" key={title}>
+              <div className="step-index">
+                <span>0{i + 1}</span>
+                <span aria-hidden="true">{i === 3 ? "↗" : "→"}</span>
+              </div>
+              <h3>{title}</h3>
+              <p>{description}</p>
+              <span className="mechanism-detail">{detail}</span>
             </div>
-            <div className="flex justify-between border-b border-edge pb-2">
-              <span className="text-fg-dim">pre-split value</span>
-              <span className="text-green">$1,000 → HF 2.00</span>
+          ))}
+        </div>
+      </section>
+
+      <section className="case-study">
+        <div className="case-intro">
+          <span className="eyebrow">02 / THE CONTROLLED EXPERIMENT</span>
+          <h2>
+            Same split.
+            <br />
+            <em>Different endings.</em>
+          </h2>
+          <p>
+            Two vaults. Identical collateral. A 4:1 stock split reveals what happens when raw token
+            balances meet per-share prices.
+          </p>
+          <Link to="/lab" className="text-link">
+            Run the comparison <span>↗</span>
+          </Link>
+          <span className="case-scope">REPEATABLE ANVIL SANDBOX · MOCK TOKENS</span>
+        </div>
+        <div className="comparison-ledger">
+          <div className="ledger-heading">
+            <span>POSITION / 10 XYZT</span>
+            <span>DEBT / $400</span>
+          </div>
+          <div className="ledger-row">
+            <div>
+              <span className="ledger-tag">01 / RAW BALANCE</span>
+              <h3>Naive vault</h3>
+              <p>10 tokens × $25 per share</p>
             </div>
-            <div className="flex justify-between border-b border-edge pb-2">
-              <span className="text-fg-dim">after 4:1 split</span>
-              <span>price $100 → $25 · raw balance still 10</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-fg-dim">naive valuation</span>
-              <span className="text-red">$250 → HF 0.50 → liquidatable</span>
+            <div className="ledger-value is-loss">
+              $250<span>HF 0.50 / LIQUIDATABLE</span>
             </div>
           </div>
-          <p className="mt-4 text-xs leading-relaxed text-fg-faint">
-            The position is perfectly healthy — the split is value-neutral. But a protocol reading
-            raw balances sees collateral collapse and liquidates the user anyway. This happens
-            onchain in the Protocol Lab.
-          </p>
-        </Card>
-        <Card title="The same block, through CorpShift" sub="what normalized protocols see">
-          <div className="space-y-3 font-mono text-[13px]">
-            <div className="flex justify-between border-b border-edge pb-2">
-              <span className="text-fg-dim">action detected</span>
-              <span className="text-amber">FORWARD_SPLIT 4:1 attested</span>
+          <div className="ledger-row">
+            <div>
+              <span className="ledger-tag">02 / ECONOMIC UNITS</span>
+              <h3>CorpShift-aware</h3>
+              <p>40 units × $25 per share</p>
             </div>
-            <div className="flex justify-between border-b border-edge pb-2">
-              <span className="text-fg-dim">risk ops</span>
-              <span className="text-amber">gated while ACTION_PENDING</span>
-            </div>
-            <div className="flex justify-between border-b border-edge pb-2">
-              <span className="text-fg-dim">verified factor</span>
-              <span>uiMultiplier() = 4e18 onchain ✓</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-fg-dim">normalized valuation</span>
-              <span className="text-green">40 units × $25 = $1,000 → HF 2.00</span>
+            <div className="ledger-value is-safe">
+              $1,000<span>HF 2.00 / PRESERVED</span>
             </div>
           </div>
-          <p className="mt-4 text-xs leading-relaxed text-fg-faint">
-            Same inputs, same corporate action — the aware vault blocks unsafe operations during the
-            transition, verifies the multiplier landed, and values the position correctly
-            throughout.
-          </p>
-        </Card>
+          <div className="ledger-note">
+            <span>↳</span> FORWARD_SPLIT 4:1 attested
+          </div>
+        </div>
+      </section>
+
+      <section className="telemetry-section" aria-label="Live pipeline">
+        <div className="telemetry-title">
+          <span className={`status-point ${sourceError ? "offline" : ""}`} />
+          <h2>Live pipeline</h2>
+          <span>
+            {sourceError ? "API UNAVAILABLE" : src ? "SANDBOX OBSERVATION" : "CONNECTING"}
+          </span>
+        </div>
+        <div className="telemetry-values">
+          {[
+            ["indexed actions", src?.counts.actions],
+            ["indexed events", src?.counts.events],
+            ["normalization failures", src?.counts.normalizationFailures],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <span>{label}</span>
+              <strong>{value ?? "—"}</strong>
+            </div>
+          ))}
+        </div>
+        <p>
+          Fixture assets without a deployment on this sandbox appear as normalization failures.
+          Public testnet receipts are provided separately above.
+        </p>
+      </section>
+      <section className="closing-line">
+        <span className="eyebrow">BUILT FOR THE NEXT LAYER OF FINANCE</span>
+        <h2>
+          Let the asset change.
+          <br />
+          <em>Keep the accounting sound.</em>
+        </h2>
+        <Link to="/lab" className="primary-link">
+          Inspect. Execute. Verify. <span>↗</span>
+        </Link>
       </section>
     </div>
   );

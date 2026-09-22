@@ -1,0 +1,162 @@
+{
+  "verifiedAt": "2026-09-22T13:52:14.651Z",
+  "chainId": 46630,
+  "scope": "Deployment receipts, bytecode presence and initial registry configuration. Mock tokens; not a completed testnet split scenario or source-code verification.",
+  "deployer": "0x04E7a73d34A203bd6EDa3326baf5ca20A4CffC4A",
+  "contracts": {
+    "policyEngine": {
+      "address": "0x89f0Dc6224c1ED0637574a8c4363aad2dA5f78cb",
+      "bytecodeBytes": 1871
+    },
+    "registry": {
+      "address": "0x9914779e3ae832922CA077943cb1d024afD0bb73",
+      "bytecodeBytes": 14618
+    },
+    "stockTokenAdapter": {
+      "address": "0x457B8156D4C8c494fedf96D10798F943dD0F1A44",
+      "bytecodeBytes": 2107
+    },
+    "erc20Adapter": {
+      "address": "0x581f3D65B7F55Fe0A1d592a10944d5B3d5e520D9",
+      "bytecodeBytes": 1275
+    },
+    "settlementVault": {
+      "address": "0x917d131D65759631dbD02b1996A730FB0cc3365f",
+      "bytecodeBytes": 5946
+    },
+    "mockStockToken": {
+      "address": "0x6386165C12d0C9C27B781225a200868d72ED1daE",
+      "bytecodeBytes": 2936
+    },
+    "mockUSDG": {
+      "address": "0xD36cD1fF70aEBC21856FF3A4032F926F5b463566",
+      "bytecodeBytes": 1503
+    },
+    "priceOracle": {
+      "address": "0xc2455fa227e6504aCA2099555ee27e2EE1565891",
+      "bytecodeBytes": 895
+    },
+    "naiveVault": {
+      "address": "0xdd85830592576062768462C3A8406d36FEFC7542",
+      "bytecodeBytes": 3045
+    },
+    "awareVault": {
+      "address": "0x9D4eA2FC8208C2fF9f19C6d5EDC8CD3789Bde6BB",
+      "bytecodeBytes": 4012
+    }
+  },
+  "receipts": [
+    {
+      "hash": "0x649e98cd3142b5525a59c0231ec07a3759c45ab64a57f948a853a628287d7a44",
+      "status": "success",
+      "blockNumber": "122782320",
+      "contractAddress": "0x89f0dc6224c1ed0637574a8c4363aad2da5f78cb"
+    },
+    {
+      "hash": "0x893114a4ed10b2618395927745bce382957a3a0549c03c5d613dffe749382a74",
+      "status": "success",
+      "blockNumber": "122782385",
+      "contractAddress": "0x9914779e3ae832922ca077943cb1d024afd0bb73"
+    },
+    {
+      "hash": "0x8e57b32d1624bd9b3118f5618e549aa57db590a8c0e247738d8a68017cc9245d",
+      "status": "success",
+      "blockNumber": "122782421",
+      "contractAddress": "0x457b8156d4c8c494fedf96d10798f943dd0f1a44"
+    },
+    {
+      "hash": "0xbdcf3c52b2f475f00091968db2e9e1cc55266a7b07fb658af9d9fc83ed21f49d",
+      "status": "success",
+      "blockNumber": "122782461",
+      "contractAddress": "0x581f3d65b7f55fe0a1d592a10944d5b3d5e520d9"
+    },
+    {
+      "hash": "0x68cb87eda04fd294f5a00046ca0477cc3ed78872876544fdb12cb25ca26a00dc",
+      "status": "success",
+      "blockNumber": "122782511",
+      "contractAddress": "0x917d131d65759631dbd02b1996a730fb0cc3365f"
+    },
+    {
+      "hash": "0x0ec2130891394d1c104d42f09887e4ec217e49cc827bfa61a36b1318cbb5c7a2",
+      "status": "success",
+      "blockNumber": "122782545",
+      "contractAddress": "0x6386165c12d0c9c27b781225a200868d72ed1dae"
+    },
+    {
+      "hash": "0x70dde9e432f74b0a1f552df5920aaae334abb9dbd4fa770270fa89027feec748",
+      "status": "success",
+      "blockNumber": "122782575",
+      "contractAddress": "0xd36cd1ff70aebc21856ff3a4032f926f5b463566"
+    },
+    {
+      "hash": "0xfa2b62cb593ddb6f801466ed927c1b2aa908d1d0268ded9d0216c26cf2d57bfe",
+      "status": "success",
+      "blockNumber": "122782670",
+      "contractAddress": "0xc2455fa227e6504aca2099555ee27e2ee1565891"
+    },
+    {
+      "hash": "0xfec5dd15095541ea9af2085de9c7912d4f55161d314201ae5b324d19ea65e2a9",
+      "status": "success",
+      "blockNumber": "122782701",
+      "contractAddress": "0xdd85830592576062768462c3a8406d36fefc7542"
+    },
+    {
+      "hash": "0xbac7e508f8562031d86622b91a8eb0b40b545753d052a2ac76d015419242277c",
+      "status": "success",
+      "blockNumber": "122782737",
+      "contractAddress": "0x9d4ea2fc8208c2ff9f19c6d5edc8cd3789bde6bb"
+    },
+    {
+      "hash": "0x766a1bc31b30a698b90858ef83df5a0ca9fab7575af353fbeb573b52606f7a36",
+      "status": "success",
+      "blockNumber": "122782842",
+      "contractAddress": null
+    },
+    {
+      "hash": "0x9e32e1ef87c492ce72e96c328fc586a9ab6a8b9953216db76671a708497df37b",
+      "status": "success",
+      "blockNumber": "122782883",
+      "contractAddress": null
+    },
+    {
+      "hash": "0x90a33ebe31012630fb43567850ea5a491c6513af507b4b86ddc512717d490d42",
+      "status": "success",
+      "blockNumber": "122782914",
+      "contractAddress": null
+    },
+    {
+      "hash": "0x7d32221f24ee841684c3e40d368b9b129b1130812c63daed08c27a7476cb6cb2",
+      "status": "success",
+      "blockNumber": "122783152",
+      "contractAddress": null
+    },
+    {
+      "hash": "0x8697dadd5e68435e987ff96c2a80334e924eb6acff7ce4d9c5fec2e9513ae87b",
+      "status": "success",
+      "blockNumber": "122783219",
+      "contractAddress": null
+    },
+    {
+      "hash": "0xf43182a35e94f9652cec297d9df5fd0c7be55e13615d2690322ecfaa3ee6208e",
+      "status": "success",
+      "blockNumber": "122783305",
+      "contractAddress": null
+    },
+    {
+      "hash": "0x91a9fbae186fe2273522318eb6bc138dff586b4789653e27e057cdb6f7e341b2",
+      "status": "success",
+      "blockNumber": "122783350",
+      "contractAddress": null
+    }
+  ],
+  "registryChecks": {
+    "owner": "0x04E7a73d34A203bd6EDa3326baf5ca20A4CffC4A",
+    "authorizedSigner": true,
+    "assetCount": "1",
+    "state": 0,
+    "normalizationFactor": "1000000000000000000",
+    "adapter": "0x457B8156D4C8c494fedf96D10798F943dD0F1A44"
+  },
+  "executionGasCostETH": "0.0001129923",
+  "remainingBalanceETH": "0.0098870077"
+}
