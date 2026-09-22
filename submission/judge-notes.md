@@ -10,6 +10,14 @@ vault reads CorpShift.
 
 ## Evidence it's real (not staged)
 
+Protocol Lab's **Verify the outcome** section requires final balances and
+the expected decoded policy errors before showing its success verdict.
+**Export evidence** includes the configured chain, contract addresses, checks,
+current API state and page-session execution log. RPC outages and unrelated
+reverts are errors, not evidence of protection. Rejected calls are simulations;
+accepted writes require successful receipts. Reloading loses the page log;
+reset and rerun locally to capture a complete report.
+
 1. **Every UI step lands real transactions.** The execution log shows tx
    hashes; `cast receipt <hash>` on anvil verifies them.
 2. **`pnpm demo:check` re-verifies the whole story via the API** — no UI

@@ -47,6 +47,12 @@ copies the foundry toolchain, caches the pnpm install layer, and healthchecks
 
 ## Robinhood Chain testnet
 
+Live demo deployment broadcast on 2026-09-22. Manifest: [46630.json](../deployments/46630.json). Receipt and configuration checks: [deployment evidence](../deployments/46630-evidence.json).
+
+Registry: [0x9914779e3ae832922CA077943cb1d024afD0bb73](https://explorer.testnet.chain.robinhood.com/address/0x9914779e3ae832922CA077943cb1d024afD0bb73). This deployment includes explicitly labelled mock stock/mUSDG and reference vaults. Deployment verification does not establish that the full six-step scenario has run on testnet, or that explorer source verification is complete.
+
+The dedicated deployer key is stored only in the Git-ignored root `.env.robinhood-testnet`. Load that file into the deploy process environment; do not put the key in CLI arguments or frontend variables. `DEMO_MODE=true` deploys the public demonstration surface; the command below shows the separate core-only option.
+
 | | |
 |---|---|
 | chain id | `46630` |
@@ -74,7 +80,7 @@ Notes:
   without `--broadcast`) — ~9.85M gas, ~0.0002 ETH. Broadcasting just needs a
   faucet-funded key.
 - The deployer becomes operator/attester initially; rotate attester keys via
-  `setAttester` and transfer ownership for production.
+  `setSigner` and transfer ownership for production.
 - Stock Token addresses come from the live Robinhood API
   (`GET https://api.robinhood.com/rhj/assets/`); register each with
   `registerAsset` so the adapters can normalize them. Testnet currently has
@@ -134,3 +140,27 @@ pnpm build && pnpm preview       # production build + preview
 The dev server proxies `/v1`, `/health`, `/openapi.yaml` to
 `http://localhost:4000` (see `apps/web/vite.config.ts`). For a deployed api,
 point the proxy at its origin or serve both behind one host.
+
+## Public demo on this Windows host
+
+URL: https://corpshift.tangvu.dev. Cloudflare tunnel `corpshift` routes only to
+`127.0.0.1:18056`. The origin serves `apps/web/dist`, explicit public deployment
+proof files, and the application API. It does not serve the repository root.
+
+PM2 configuration: `ecosystem.config.cjs`.
+
+- `corpshift-stack`: supervises Anvil :18545, API :14000, indexer, and production web :18056.
+- `corpshift-tunnel`: uses `~/.cloudflared/corpshift.yml`; credentials remain outside the repo.
+- Logs: `data/public-logs/` and PM2 logs. Each fresh sandbox gets a separate SQLite file in `data/public-sessions/` to avoid stale records from earlier chains.
+- Private testnet env is not loaded into the public sandbox process.
+
+Build with `pnpm build`, then `pm2 start ecosystem.config.cjs`. For updates use
+`pnpm build` followed by `pm2 restart corpshift-stack`. Save the process list
+with `pm2 save`. Host availability and Windows/PM2 startup determine uptime;
+PM2 does not keep the machine awake.
+
+The interactive lab is shared across visitors, and reset affects everyone.
+It sends actual transactions on Anvil, not Robinhood testnet. The separate
+Robinhood testnet deployment is linked on Overview with downloadable receipts.
+A stack restart starts a fresh sandbox. This is a demonstration service,
+not a durable hosted production protocol.

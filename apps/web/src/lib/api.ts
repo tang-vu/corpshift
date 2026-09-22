@@ -82,6 +82,9 @@ export interface VaultView {
 }
 
 export interface DemoState {
+  chainId: number;
+  registry: string;
+  contracts: { naiveVault: string; awareVault: string; priceOracle: string; debtToken: string };
   step: number;
   user: string;
   asset: string;

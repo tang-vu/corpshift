@@ -2,5 +2,8 @@ packages:
   - "apps/*"
   - "packages/*"
 
+virtualStoreDir: node_modules/.pnpm-isolated
+packageImportMethod: copy
+
 allowBuilds:
   esbuild: true

@@ -5,13 +5,14 @@
   "description": "The corporate-action runtime for onchain finance.",
   "type": "module",
   "engines": {
-    "node": ">=22.0.0",
+    "node": ">=24.0.0",
     "pnpm": ">=9.0.0"
   },
   "packageManager": "pnpm@11.24.0",
   "scripts": {
     "build": "pnpm -r --sort build",
     "test": "pnpm -r test",
+    "test:hosting": "node --test scripts/serve-public.test.mjs",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",

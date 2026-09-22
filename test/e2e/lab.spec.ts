@@ -8,7 +8,7 @@ import { expect, test } from "@playwright/test";
 test.describe("landing", () => {
   test("hero + pipeline render with live counts", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("DeFi must change with it");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Change happens.");
     await expect(page.getByText("Live pipeline")).toBeVisible();
     await expect(page.getByText("indexed actions")).toBeVisible();
     await expect(page.getByText("FORWARD_SPLIT 4:1 attested")).toBeVisible();
@@ -67,6 +67,20 @@ test.describe("protocol lab", () => {
 
     // execution log contains real tx hashes (0x…)
     await expect(page.locator("text=/0x[0-9a-f]{6}…/i").first()).toBeVisible();
+
+    // The verdict requires decoded policy rejections AND observed balances.
+    await expect(page.getByText("verdict — same chain", { exact: false })).toBeVisible();
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export evidence" }).click();
+    const stream = await (await downloadPromise).createReadStream();
+    let body = "";
+    for await (const chunk of stream!) body += chunk.toString();
+    const report = JSON.parse(body);
+    expect(report.verified).toBe(true);
+    expect(report.state.registry).toMatch(/^0x[0-9a-fA-F]{40}$/);
+    expect(
+      report.executionLog.filter((entry: { step: string }) => entry.step !== "reset"),
+    ).toHaveLength(6);
   });
 });
 

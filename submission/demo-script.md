@@ -12,13 +12,15 @@ finance."
 
 *(Scroll to the live pipeline strip — real indexed actions visible.)*
 
-"These are real corporate actions — normalized from Robinhood's public API."
+"These are captured corporate-action records from Robinhood's public API,
+replayed through our normalizer. The lending scenario uses mock tokens."
 
 **[0:15 — the problem]** *(20s)* — open `/lab`
 
 "Two identical lending vaults. Same user deposits 10 stock tokens, borrows
 $400 in each — health factor 2.0. The only difference: the left vault reads
-raw `balanceOf`. The right one reads CorpShift."
+raw `balanceOf` with a per-share price. The right one reads CorpShift economic
+units with that same price."
 
 **[0:35 — seed]** *(15s)* — click **▶ Seed positions**
 
@@ -53,23 +55,24 @@ sees."
 **[1:50 — reconcile]** *(15s)* — click **▶ Reconcile**
 
 "The registry verifies the token's live multiplier against the attested
-factor — verified, back to `ACTIVE` at 4×. It doesn't trust the action; it
-*proves* it onchain."
+factor — verified, back to `ACTIVE` at 4×. This checks the token's onchain
+multiplier; the external action still relies on an authorized attester."
 
 **[2:05 — the divergence]** *(30s)* — click **▶ Liquidation test**
 
-"A liquidator calls `liquidate` on both vaults. Naive: collateral $250 < debt
+"A liquidator submits `liquidate` to the naive vault. Naive: collateral $250 < debt
 $400 → the position gets seized — **a healthy position, wrongfully
 liquidated**. Aware: 40 economic units × $25 = $1,000 → HF 2.00 → the
-liquidation reverts — the user's position is untouched."
+liquidation simulation returns `NotLiquidatable` — the user's position is untouched."
 
 *(LIQUIDATED badge on naive; aware stays HF 2.00.)*
 
-**[2:35 — receipts]** *(20s)* — scroll the execution log
+**[2:35 — receipts]** *(30s)* — show Verify the outcome, then Export evidence
 
-"Every step is a real transaction with a real hash. This isn't a simulation
-— it's the deployed registry, the real policy engine, two real vaults, on a
-live chain."
+"These checks use observed state and the expected contract errors. Accepted
+writes have transaction hashes; rejected operations are simulations. Download
+the report to inspect chain addresses, balances and this session's transaction
+references. The $1,000 is gross collateral retained, with $400 debt remaining."
 
 **[2:55 — close]** *(30s)* — back to landing / `/actions`
 
@@ -84,7 +87,8 @@ protocols can gate on. The stock changes; DeFi stays correct."
 - "Show the API" → `GET /v1/actions` (canonical records), `/v1/policy/<asset>/<op>`,
   `/v1/exposure/<asset>/<account>` (raw vs economic side by side),
   `/openapi.yaml`.
-- "Prove it's not simulated" → `pnpm demo:check` — 13 assertions on live state.
+- "Which parts are executed?" → `pnpm demo:check` — 13 assertions on live state;
+  inspect accepted transaction receipts separately from rejected simulations.
 - "Show the edge cases" → `forge test` — cross-chain replay, tampered params,
   malleable-s, halted-invariant fuzzing.
 - "What about dividends?" → `SettlementVault` pays entitlements at the

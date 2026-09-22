@@ -4,6 +4,8 @@
 
 - Node ≥ 24 (native TS strip-mode for `apps/*`; `node:sqlite` store)
 - pnpm workspaces; `pnpm -r` for typecheck/test/build
+- `pnpm-workspace.yaml` uses copied packages in `node_modules/.pnpm-isolated` so Windows
+  installs do not replace executable hardlinks held by another project's dev server.
 - Foundry 1.8.x for contracts; `forge fmt` enforced
 - eslint 9 (flat config) + prettier — `pnpm lint`, `pnpm format:check`
 - `exactOptionalPropertyTypes` — optional props get `| undefined` explicitly
@@ -42,10 +44,14 @@
 
 ## Git
 
+- Every completed update goes through a feature branch and PR, then squash merge
+  after passing CI. The owner has authorized routine PR creation and automatic
+  merging without another confirmation; see `AGENTS.md`. Never bypass failed checks.
+
 - Conventional-ish commits: `feat|fix|build|refactor|test(scope): why`.
 - No `chore`/`docs` prefixes for `.claude` file changes.
 - Don't commit `data/`, `test-results/`, `.claude/` artifacts.
-- No secrets — demo keys are anvil public accounts only.
+- No secrets — only Anvil public demo keys belong in source; private testnet keys stay in ignored env files.
 
 ## Docs
 

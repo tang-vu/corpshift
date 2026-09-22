@@ -40,6 +40,7 @@ import type { Store } from "@corpshift/indexer/db";
 import type { ApiConfig } from "./config.ts";
 import type { ChainClients } from "./clients.ts";
 import { walletFor } from "./clients.ts";
+import { assertSuccessfulReceipt, expectedRevert } from "./demo-evidence.ts";
 
 export const DEMO_DEPOSIT = parseEther("10"); // 10 stock tokens
 export const DEMO_BORROW = 400_000_000n; //      $400 mUSDG (6dp)
@@ -134,7 +135,7 @@ export class DemoConductor {
       functionName: fn,
       args,
     } as never);
-    await this.pub.waitForTransactionReceipt({ hash });
+    assertSuccessfulReceipt(await this.pub.waitForTransactionReceipt({ hash }));
     return hash;
   }
 
@@ -153,6 +154,7 @@ export class DemoConductor {
     abi: unknown,
     fn: string,
     args: unknown[],
+    expected: string,
   ): Promise<string> {
     try {
       await this.pub.simulateContract({
@@ -162,8 +164,11 @@ export class DemoConductor {
         functionName: fn,
         args,
       } as never);
-      return "UNEXPECTEDLY_SUCCEEDED";
+      throw new Error(
+        `Expected ${expected}, but ${fn} simulation succeeded; protection is not verified`,
+      );
     } catch (e) {
+      if (!expectedRevert(e, expected)) throw e;
       return shortErr(e);
     }
   }
@@ -271,7 +276,7 @@ export class DemoConductor {
           to: role.address,
           value: parseEther("0.05"),
         });
-        await this.pub.waitForTransactionReceipt({ hash });
+        assertSuccessfulReceipt(await this.pub.waitForTransactionReceipt({ hash }));
         txs.push(this.txRec(`fund ${role === this.user ? "user" : "liquidator"} gas`, hash));
       }
     }
@@ -396,7 +401,7 @@ export class DemoConductor {
       functionName: "submitAction",
       args: [signed.payload, signed.params, signed.signature],
     } as never);
-    await this.pub.waitForTransactionReceipt({ hash });
+    assertSuccessfulReceipt(await this.pub.waitForTransactionReceipt({ hash }));
     this.store.setMeta("demo.actionId", actionId);
     this.store.setMeta("demo.effectiveAt", action.effectiveAt.toString());
     this.setStep(2);
@@ -432,11 +437,12 @@ export class DemoConductor {
       CorpShiftAwareVaultAbi,
       "borrow",
       [10_000_000n],
+      "UnsafeAssetState",
     );
     this.setStep(3);
     return {
       step: "probe",
-      ok: awareErr !== "UNEXPECTEDLY_SUCCEEDED",
+      ok: true,
       detail: `naive vault processed borrow on stale units; aware vault rejected it (${awareErr})`,
       txs,
       reverts: [{ label: "aware borrow (policy-gated)", error: awareErr }],
@@ -566,11 +572,12 @@ export class DemoConductor {
       CorpShiftAwareVaultAbi,
       "liquidate",
       [this.user.address],
+      "NotLiquidatable",
     );
     this.setStep(6);
     return {
       step: "liquidate",
-      ok: awareErr !== "UNEXPECTEDLY_SUCCEEDED",
+      ok: true,
       detail: `naive vault seized a HEALTHY position; aware vault refused (${awareErr}) — CorpShift kept it economically correct`,
       txs,
       reverts: [{ label: "aware liquidate (protected)", error: awareErr }],
@@ -691,6 +698,14 @@ export class DemoConductor {
     }
     return {
       step: this.metaStep(),
+      chainId: this.cfg.chainId,
+      registry: this.cfg.manifest.registry,
+      contracts: {
+        naiveVault: m.naiveVault,
+        awareVault: m.awareVault,
+        priceOracle: m.priceOracle,
+        debtToken: m.mockUSDG,
+      },
       user,
       asset: m.mockStockToken,
       assetState: ASSET_STATE_NAMES[state as AssetState],

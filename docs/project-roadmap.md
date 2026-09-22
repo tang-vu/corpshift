@@ -15,11 +15,22 @@
 - [x] Docs: architecture, threat model, deployment, benchmarks
 - [x] 61 forge + 41 vitest + 13 acceptance + 3 e2e — all green
 
-## Next (post-hackathon, ordered)
+## Required before submission
 
-1. **Testnet deployment** — deploy to Robinhood testnet (46630); blocked on
-   Stock Token testnet availability (none exist as of 2026-09-19 — mock
-   source can still demonstrate the full pipeline there).
+- [ ] Broadcast a Robinhood testnet deployment and record receipts and explorer links.
+      A dry run is not deployment. Mock Stock Tokens can be used transparently;
+      native testnet Stock Token availability is not a blocker for this demo.
+- [ ] Publish a working demo and record the video against the submitted build.
+- [ ] Re-run checks and save current evidence; the counts above describe the previous baseline.
+- [ ] Validate submission fields, Terms, and deadline timezone.
+
+See [winner benchmark](research/winner-benchmark.md) for sourced comparisons,
+product priorities, and acceptance gates.
+
+## Next (ordered)
+
+1. **Integration validation** — have an external builder reproduce the lending
+   integration and document observed friction and feedback.
 2. **Multi-attester quorum** — M-of-N attestation or Robinhood-signed
    actions; the EIP-712 surface already supports it.
 3. **Real production persistence** — swap `node:sqlite` for Postgres behind

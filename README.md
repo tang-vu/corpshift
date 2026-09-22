@@ -1,12 +1,15 @@
 # CorpShift
 
+Public demo: **https://corpshift.tangvu.dev** — repeatable Anvil lab and separately linked Robinhood testnet deployment evidence.
+
 **The corporate-action runtime for onchain finance.**
 
 Stock Tokens are programmable — but corporate actions change their *economic
 meaning*. A 4:1 split moves the ERC-8056 `uiMultiplier` from `1e18` to `4e18` and
-the per-token price from $100 to $25. A protocol that reads only
-`balanceOf()` now misprices collateral by 4×: it over-lends before the split is
-priced, and it **wrongfully liquidates healthy positions** after it.
+the per-economic-share price from $100 to $25. A protocol that combines raw
+`balanceOf()` units with that per-share price now undervalues collateral by
+4× and can **wrongfully liquidate healthy positions**. A price feed already
+normalized per raw token has a different basis and must not be multiplied twice.
 
 CorpShift keeps DeFi economically correct when the stock underneath a Stock
 Token changes. It normalizes corporate actions into a canonical schema,
@@ -111,8 +114,9 @@ onchain and mirrored in every API response. Full diagrams:
 Consumer protocols ask one question before acting:
 
 ```solidity
-bool ok = policyEngine.allowed(asset, PolicyOp.Borrow);      // gate writes
-uint256 units = registry.economicUnits(asset, rawBalance);   // value correctly
+(bool ok, bytes32 reason) = registry.checkPolicy(asset, CorpShiftTypes.PolicyOp.BORROW);
+if (!ok) revert UnsafeAssetState(reason); // define this custom error in the consumer
+uint256 units = registry.economicUnitsOfAmount(asset, rawBalance);
 ```
 
 `ACTION_PENDING`, `ADJUSTING`, `HALTED`, `MIGRATING`, `REDEEMING` each carry an
@@ -135,10 +139,12 @@ revoked-signer, and replay vectors are all revert-tested. Trust model:
 | Suite | Result |
 |---|---|
 | `forge test` | **61/61** — unit, fuzz, integration, handler-based invariants (48 runs / 576 calls / 0 reverts) |
-| `pnpm test` | **41/41** vitest across core, shared, sdk, indexer, api |
+| `pnpm test` | **44/44** vitest across core, shared, sdk, indexer, api |
 | `pnpm demo:check` | **13/13** — full scenario on live anvil: seeded, attested, probed, executed, reconciled, naive seized, aware HF 2.00 |
-| `pnpm e2e` | **3/3** Playwright — the scenario driven through the real browser UI |
+| `pnpm e2e` | **8/8** Playwright — real-chain scenario, failure handling, interactive illustration, mobile layouts and navigation |
 | `forge fmt --check` · `pnpm lint` · `pnpm typecheck` · `pnpm format:check` | clean |
+
+Install the browser once before E2E checks: `pnpm exec playwright install chromium --only-shell`.
 
 ## Deploying to Robinhood Chain testnet
 
@@ -153,6 +159,8 @@ Chain id `46630`, RPC `https://rpc.testnet.chain.robinhood.com`, faucet at
 - [Threat model](docs/threat-model.md) — trust assumptions + mitigations
 - [Benchmarks](docs/benchmarks.md) — gas + latency numbers
 - [Research notes](docs/research/README.md) — Robinhood Chain / ERC-8056 facts, verified live
+- [Winner benchmark](docs/research/winner-benchmark.md) — sourced comparisons and submission priorities
+- [Integration guide](docs/integration-guide.md) — policy gates, valuation units, and verification
 - [API reference](apps/api/openapi.yaml) — OpenAPI 3.1
 
 ## License

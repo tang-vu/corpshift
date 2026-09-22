@@ -9,12 +9,14 @@ The corporate-action runtime for onchain finance.
 ## The problem (60 seconds)
 
 Robinhood Stock Tokens are programmable — but corporate actions change their
-*economic meaning*. When CRWD split 4:1, its ERC-8056 `uiMultiplier` moved
-`1e18 → 4e18` and the per-token price dropped `$100 → $25` (verified live on
-mainnet). Any protocol reading raw `balanceOf()` now misprices collateral by
-4× — over-lending before the split is priced in, **wrongfully liquidating
-healthy positions after it**. This isn't hypothetical: it's the default
-behavior of every naive integration today.
+*economic meaning*. The captured Robinhood fixture includes a CRWD 4:1 split.
+Our controlled lending demonstration uses illustrative prices of `$100 → $25`
+and a multiplier of `1e18 → 4e18`; these prices are not a claim about CRWD's
+historical market price. Combining raw `balanceOf()` units with a per-economic-share
+price undervalues the reference collateral by 4× and triggers a wrongful
+liquidation. We demonstrate this integration failure, not an observed incident
+in a production lending protocol. Feeds already priced per raw token require
+a different unit conversion.
 
 ## What CorpShift does
 
@@ -31,11 +33,12 @@ Token changes:
   with `HALTED`, `MIGRATING`, `REDEEMING`, `DEGRADED`, `UNSUPPORTED`.
 - **Verifies** — `applyAction` checks the token's live `uiMultiplier()`
   against the attested factor. Mismatch → `DEGRADED`, never silent `ACTIVE`.
-- **Protects** — `PolicyEngine` answers `allowed(asset, op)` per state;
-  `economicUnits(raw)` applies the verified factor. Protocols gate ops and
-  value collateral correctly.
+- **Protects** — consumers call `checkPolicy(asset, op)` before risk-bearing
+  operations and `economicUnitsOfAmount(asset, rawAmount)` for valuation.
+  Economic units use the live factor; policy gates and reconciliation determine
+  when the asset may safely support the operation.
 
-## The demo (deterministic, all real transactions)
+## The reproducible lending demonstration
 
 Two identical vaults, same user, same 10 stk collateral, same $400 debt:
 
@@ -45,8 +48,12 @@ Two identical vaults, same user, same 10 stk collateral, same $400 debt:
 | during `ACTION_PENDING` | still lends | blocks new borrows |
 | after 4:1 split | sees $250 collateral → **seizes a healthy position** | sees 40 units → $1,000 → **HF 2.00, untouched** |
 
-Six steps — seed, attest, probe, execute, reconcile, liquidate — **21 real
-onchain transactions**, each linked in the UI's execution log.
+Six steps — seed, attest, probe, execute, reconcile, liquidate. Accepted writes
+produce onchain transaction receipts; blocked borrow/liquidation calls are
+contract simulations with decoded errors. Mock stock and mUSDG tokens are used.
+The UI checks the observed outcome and exports chain/contract references,
+balances and the page session's execution log as JSON. The export is an
+inspectable API snapshot, not a signed proof or an independent audit.
 
 **Run it:** `pnpm install && pnpm demo` → `http://localhost:8056/lab`
 (or `docker compose up --build`). **Verify it:** `pnpm demo:check`
@@ -62,8 +69,8 @@ onchain transactions**, each linked in the UI's execution log.
 - The handler-based invariant suite fuzzes the state machine (576 calls):
   unique action ids, halt-pointer integrity, terminal stickiness,
   factor-never-zero.
-- The indexer pipeline ingests **real Robinhood API data** (48 live
-  corporate actions + the actual CRWD 4:1 split fixture) and reconciles
+- The indexer pipeline supports live Robinhood API ingestion; the default demo
+  replays captured data, including the CRWD 4:1 split fixture, and reconciles
   against chain state — normalization failures persist visibly, never
   silently dropped.
 

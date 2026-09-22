@@ -85,11 +85,11 @@ function VaultPanel({
   const empty = v.collateralRaw === "0";
   return (
     <div
-      className={`relative rounded-lg border ${accent} bg-panel-2 p-4 ${liquidated ? "opacity-70" : ""}`}
+      className={`vault-panel relative border ${accent} bg-panel-2 p-4 ${liquidated ? "opacity-70" : ""}`}
     >
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-[14px] font-bold">{name}</div>
+          <div className="vault-name">{name}</div>
           <div className="font-mono text-[10px] tracking-wide text-fg-faint">{tag}</div>
         </div>
         {liquidated && (
@@ -128,13 +128,14 @@ export function Lab() {
   const [log, setLog] = useState<DemoStepResult[]>([]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [readError, setReadError] = useState<string | null>(null);
   const mounted = useRef(true);
 
   const refresh = useCallback(() => {
     api
       .demoState()
-      .then((s) => mounted.current && (setState(s), setErr(null)))
-      .catch((e) => mounted.current && setErr(e.message));
+      .then((s) => mounted.current && (setState(s), setReadError(null)))
+      .catch((e) => mounted.current && setReadError(e.message));
   }, []);
 
   useEffect(() => {
@@ -146,9 +147,11 @@ export function Lab() {
 
   const act = async (fn: () => Promise<DemoStepResult>) => {
     setBusy(true);
+    setErr(null);
     try {
       const r = await fn();
-      setLog((l) => [...l, r]);
+      setLog((l) => (r.step === "reset" && r.ok ? [r] : [...l, r]));
+      if (!r.ok) setErr(r.detail);
       refresh();
     } catch (e) {
       setErr((e as Error).message);
@@ -157,16 +160,81 @@ export function Lab() {
     }
   };
 
-  if (err && !state) {
-    return <Empty>demo unavailable: {err} — start the api with demo keys configured.</Empty>;
+  if (readError && !state) {
+    return <Empty>demo unavailable: {readError} — start the api with demo keys configured.</Empty>;
   }
   if (!state) return <div className="shimmer h-64 rounded-lg" />;
 
   const nextLabel = STEPS[state.step]?.label ?? "done";
+  const checks = [
+    { label: "Scenario completed", pass: state.step === STEPS.length },
+    {
+      label: "Borrow blocked by policy",
+      pass: log.some(
+        (entry) =>
+          entry.step === "probe" &&
+          entry.ok &&
+          entry.reverts?.some((revert) => revert.error.startsWith("UnsafeAssetState")),
+      ),
+    },
+    {
+      label: "Healthy liquidation rejected",
+      pass: log.some(
+        (entry) =>
+          entry.step === "liquidate" &&
+          entry.ok &&
+          entry.reverts?.some((revert) => revert.error.startsWith("NotLiquidatable")),
+      ),
+    },
+    { label: "Asset restored to ACTIVE", pass: state.assetState === "ACTIVE" },
+    {
+      label: "4:1 multiplier verified",
+      pass:
+        state.uiMultiplier === "4000000000000000000" && state.verifiedFactor === state.uiMultiplier,
+    },
+    {
+      label: "Naive collateral seized",
+      pass: state.step === STEPS.length && state.vaults.naive.collateralRaw === "0",
+    },
+    {
+      label: "Aware position retained",
+      pass:
+        state.vaults.aware.collateralRaw === "10000000000000000000" &&
+        state.vaults.aware.debt === "400000000",
+    },
+    {
+      label: "$1,000 value and HF 2.00 preserved",
+      pass:
+        state.vaults.aware.collateralValue === "1000000000000000000000" &&
+        state.vaults.aware.healthFactor === "2000000000000000000",
+    },
+  ];
+  const verified = !busy && !readError && !err && checks.every((check) => check.pass);
+  const exportEvidence = () => {
+    const report = {
+      schema: "corpshift.demo-evidence.v1",
+      capturedAt: new Date().toISOString(),
+      verified,
+      error: readError ?? err,
+      checks,
+      state,
+      executionLog: log,
+      scope:
+        "Browser-observed API snapshot; independently verify transaction receipts. Log contains only this page session. Stock and debt tokens are demo mocks; rejected calls are simulations.",
+    };
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "corpshift-demo-evidence.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="lab-workspace space-y-6">
+      <div className="lab-heading flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Protocol Lab</h1>
           <p className="mt-1 max-w-2xl text-sm text-fg-dim">
@@ -174,6 +242,10 @@ export function Lab() {
             same collateral, same 4:1 split —{" "}
             <strong className="text-fg">diametrically opposed outcomes</strong>, proven with real
             transactions.
+          </p>
+          <p className="mt-2 text-xs text-fg-faint">
+            Shared Anvil sandbox · mock stock and mUSDG · reset affects all visitors. Public
+            Robinhood testnet deployment is linked from Overview.
           </p>
         </div>
         <div className="flex gap-2">
@@ -199,7 +271,18 @@ export function Lab() {
       </div>
 
       {/* step tracker */}
-      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
+      {(readError || err) && (
+        <div
+          role="alert"
+          className="rounded-lg border border-red/40 bg-red-dim p-3 text-sm text-red"
+        >
+          {readError ? `Live reads unavailable. Displayed values may be stale: ${readError}` : err}
+        </div>
+      )}
+      <div
+        className="step-track grid grid-cols-3 gap-1.5 sm:grid-cols-6"
+        aria-label="Scenario progress"
+      >
         {STEPS.map((s, i) => (
           <div
             key={s.key}
@@ -289,7 +372,7 @@ export function Lab() {
       </div>
 
       {/* verdict — the money shot once the scenario completes */}
-      {state.step >= 6 && (
+      {verified && (
         <Card className="border-green/25">
           <div className="text-center">
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-fg-faint">
@@ -326,6 +409,39 @@ export function Lab() {
           </div>
         </Card>
       )}
+
+      <Card
+        title="Verify the outcome"
+        sub="Checks against the latest API state; export the inputs and transaction references."
+      >
+        <div className="grid gap-2 sm:grid-cols-2">
+          {checks.map((check) => (
+            <div
+              key={check.label}
+              className="flex items-center gap-2 rounded border border-edge bg-panel-2 p-3 text-xs"
+            >
+              <span className={check.pass && !readError ? "text-green" : "text-fg-faint"}>
+                {readError ? "STALE" : check.pass ? "PASS" : "WAIT"}
+              </span>
+              {check.label}
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="max-w-xl text-xs leading-relaxed text-fg-dim">
+            Demo uses mock stock and mUSDG tokens. Accepted operations have transaction hashes;
+            rejected operations are contract simulations. The report is an inspectable snapshot, not
+            an independent audit or proof of production readiness.
+          </p>
+          <button
+            onClick={exportEvidence}
+            disabled={busy || !!readError}
+            className="rounded-md border border-edge-2 px-4 py-2 text-xs font-semibold hover:border-green disabled:opacity-40"
+          >
+            Export evidence
+          </button>
+        </div>
+      </Card>
 
       {/* execution log */}
       {log.length > 0 && (
@@ -367,7 +483,6 @@ export function Lab() {
           </div>
         </Card>
       )}
-      {err && state && <p className="font-mono text-xs text-red">{err}</p>}
     </div>
   );
 }

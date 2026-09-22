@@ -54,14 +54,14 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section className={`rounded-lg border border-edge bg-panel ${className}`}>
+    <section className={`data-card ${className}`}>
       {(title || sub) && (
-        <header className="border-b border-edge px-4 py-3">
+        <header>
           {title && <h3 className="text-[13px] font-semibold tracking-wide text-fg">{title}</h3>}
           {sub && <p className="mt-0.5 text-xs text-fg-faint">{sub}</p>}
         </header>
       )}
-      <div className="p-4">{children}</div>
+      <div className="data-card-body">{children}</div>
     </section>
   );
 }

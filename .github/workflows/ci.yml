@@ -33,11 +33,10 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test
-      - name: web production build
-        working-directory: apps/web
-        run: pnpm build
+      - run: pnpm test:hosting
       - run: pnpm lint
       - run: pnpm format:check
 
@@ -54,16 +53,24 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium --only-shell
       - name: demo stack (anvil + deploy + indexer + api + web)
         run: |
           pnpm demo &
           echo $! > demo.pid
+          ready=0
           for i in $(seq 1 120); do
-            curl -sf http://127.0.0.1:4000/health && break
+            if curl -sf http://127.0.0.1:4000/health && curl -sf http://127.0.0.1:8056/ > /dev/null; then
+              ready=1
+              break
+            fi
             sleep 2
           done
+          test "$ready" = 1
       - name: killer-demo acceptance
         run: node scripts/demo-check.mjs
+      - name: browser regression checks
+        run: pnpm e2e
       - name: teardown
         if: always()
         run: kill "$(cat demo.pid)" 2>/dev/null || true
