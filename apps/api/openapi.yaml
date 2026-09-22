@@ -88,19 +88,22 @@ paths:
   /v1/demo/state:
     get:
       summary: Live demo scenario state — both vaults, asset state, factors
-      description: Includes the configured chainId, registry and demo contract addresses for receipt verification. Reads are not pinned to a single block.
+      description: Includes chainId, registry, demo contracts, busy and runId. The runId changes on conductor startup and successful reset, allowing page-session evidence invalidation. Reads are not pinned to a single block.
       responses:
         "200": { description: ok }
         "503": { description: demo keys not configured }
   /v1/demo/step:
     post:
       summary: Advance the killer scenario one step (real transactions)
+      description: Shared state; not an idempotent request for a named step. Refresh state after uncertain outcomes before offering another write. Successful step responses include runId. The public gateway limits global writes to 30 attempts per minute.
       responses:
         "200": { description: step result — txs sent, reverts captured }
+        "429": { description: public gateway write limit; respect Retry-After }
         "503": { description: demo keys not configured }
   /v1/demo/reset:
     post:
       summary: Revert the scenario (local chains only — evm_revert)
+      description: Affects every visitor of the shared sandbox. Successful reset returns the new runId.
       responses:
         "200": { description: reset result }
         "503": { description: demo keys not configured }

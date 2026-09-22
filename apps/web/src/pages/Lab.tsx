@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, type DemoState, type DemoStepResult, type VaultView } from "../lib/api";
-import { Card, Empty, HexLink, StateBadge, Stat } from "../components/ui";
+import { api, ApiError, type DemoState, type DemoStepResult } from "../lib/api";
+import { Card, Empty, PageIntro, Partition, HexLink, StateBadge, Stat } from "../components/ui";
 import { fmt18, fmtHf, fmtMult, fmtPrice8, fmtUsd6, shortHex, timeUntil } from "../lib/format";
 
 const STEPS = [
@@ -20,8 +20,7 @@ const STEPS = [
 function hfTone(v: string): string {
   const b = BigInt(v);
   if (b > 10n ** 30n) return "text-fg-faint";
-  const n = Number(b) / 1e18;
-  return n >= 1.5 ? "text-green" : n >= 1 ? "text-amber" : "text-red";
+  return b >= 15n * 10n ** 17n ? "text-green" : b >= 10n ** 18n ? "text-amber" : "text-red";
 }
 
 /** The demo scenario walks the canonical economic-action path. The final
@@ -44,7 +43,7 @@ function StateRail({ assetState, step }: { assetState: string; step: number }) {
       {RAIL.map((s, i) => (
         <div key={i} className="flex items-center gap-1">
           <div
-            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10px] font-semibold tracking-wide whitespace-nowrap ${
+            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[12px] font-semibold tracking-wide whitespace-nowrap ${
               i === idx
                 ? "border-amber/50 bg-amber-dim/50 text-amber"
                 : i < idx
@@ -58,7 +57,7 @@ function StateRail({ assetState, step }: { assetState: string; step: number }) {
             {i === 3 && idx === 3 && <span className="text-green">restored</span>}
           </div>
           {i < RAIL.length - 1 && (
-            <span className={`text-[10px] ${i < idx ? "text-green" : "text-fg-faint"}`}>→</span>
+            <span className={`text-[12px] ${i < idx ? "text-green" : "text-fg-faint"}`}>→</span>
           )}
         </div>
       ))}
@@ -67,59 +66,92 @@ function StateRail({ assetState, step }: { assetState: string; step: number }) {
   );
 }
 
-function VaultPanel({
-  name,
-  tag,
-  tone,
-  v,
-  liquidated,
-}: {
-  name: string;
-  tag: string;
-  tone: "naive" | "aware";
-  v: VaultView;
-  liquidated?: boolean;
-}) {
-  const accent = tone === "naive" ? "border-red/30" : "border-green/30";
-  const hf = fmtHf(v.healthFactor);
-  const empty = v.collateralRaw === "0";
+function PairedMeasurements({ state }: { state: DemoState }) {
+  const [replay, setReplay] = useState(0);
+  const { naive, aware } = state.vaults;
+  const units = (raw: string) =>
+    fmt18((BigInt(raw) * BigInt(state.normalizationFactor)) / 10n ** 18n, 2);
+  const rows = [
+    ["Raw collateral · stock tokens", fmt18(naive.collateralRaw), fmt18(aware.collateralRaw)],
+    ["Economic shares · live adapter", units(naive.collateralRaw), units(aware.collateralRaw)],
+    ["Debt · mUSDG", fmtUsd6(naive.debt), fmtUsd6(aware.debt)],
+  ];
+  const scale =
+    BigInt(naive.collateralValue) > BigInt(aware.collateralValue)
+      ? BigInt(naive.collateralValue)
+      : BigInt(aware.collateralValue);
+  const width = (v: string) => (scale === 0n ? 0 : Number((BigInt(v) * 1000n) / scale) / 10);
   return (
-    <div
-      className={`vault-panel relative border ${accent} bg-panel-2 p-4 ${liquidated ? "opacity-70" : ""}`}
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="vault-name">{name}</div>
-          <div className="font-mono text-[10px] tracking-wide text-fg-faint">{tag}</div>
-        </div>
-        {liquidated && (
-          <span className="rounded border border-red/40 bg-red-dim px-2 py-0.5 font-mono text-[10px] font-bold text-red">
-            LIQUIDATED
-          </span>
-        )}
-        {!liquidated && empty && (
-          <span className="rounded border border-edge-2 bg-panel px-2 py-0.5 font-mono text-[10px] tracking-wide text-fg-faint">
-            no position
-          </span>
-        )}
+    <section className="paired-measurements" aria-label="Synchronized vault comparison">
+      <div className="comparison-top">
+        <span className="eyebrow">SAME POSITION / TWO ACCOUNTING SYSTEMS</span>
+        <button onClick={() => setReplay(replay + 1)}>Replay visual ↻</button>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <Stat label="collateral (raw)" value={`${fmt18(v.collateralRaw, 1)} stk`} />
-        <Stat label="collateral value" value={`$${fmt18(v.collateralValue, 0)}`} />
-        <Stat label="debt" value={`$${fmtUsd6(v.debt)}`} />
-        <div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-faint">
-            health factor
-          </div>
-          <div
-            data-testid={`hf-${tone}`}
-            className={`mt-1 font-mono text-2xl font-bold ${hfTone(v.healthFactor)}`}
-          >
-            {hf}
-          </div>
-        </div>
+      <div className="pair-heading">
+        <span>Current API observation</span>
+        <h2>
+          NaiveVault<small>Raw balance accounting</small>
+        </h2>
+        <h2>
+          CorpShiftAwareVault<small>Live units + policy gates</small>
+        </h2>
       </div>
-    </div>
+      <div className="pair-row pair-value">
+        <span>Collateral valuation · USD</span>
+        <strong>${fmt18(naive.collateralValue, 0)}</strong>
+        <strong>${fmt18(aware.collateralValue, 0)}</strong>
+      </div>
+      <div className="pair-row pair-bars" key={`${state.step}-${replay}`} aria-hidden="true">
+        <span>Shared relative scale</span>
+        {[naive, aware].map((v, i) => (
+          <div key={i}>
+            <i style={{ width: `${width(v.collateralValue)}%` }} />
+          </div>
+        ))}
+      </div>
+      {rows.map(([label, n, a]) => (
+        <div className="pair-row" key={label}>
+          <span>{label}</span>
+          <b>{n}</b>
+          <b>{a}</b>
+        </div>
+      ))}
+      <div className="pair-row">
+        <span>Health factor · ratio</span>
+        <b data-testid="hf-naive" className={hfTone(naive.healthFactor)}>
+          {fmtHf(naive.healthFactor)}
+        </b>
+        <b data-testid="hf-aware" className={hfTone(aware.healthFactor)}>
+          {fmtHf(aware.healthFactor)}
+        </b>
+      </div>
+      <div className="pair-row">
+        <span>Position condition</span>
+        <b>
+          {state.step === 6 && naive.collateralRaw === "0"
+            ? "LIQUIDATED"
+            : naive.collateralRaw === "0"
+              ? "No position"
+              : "Deposited"}
+        </b>
+        <b>{aware.collateralRaw === "0" ? "No position" : "Position retained"}</b>
+      </div>
+      <div className="causal-note">
+        <span>↳</span>
+        <p>
+          {state.uiMultiplier !== state.verifiedFactor
+            ? "The live multiplier changed before verification. Aware valuation already uses live adapter units; policy gates restrict operations while the registry is ADJUSTING."
+            : state.step >= 5
+              ? "Reconciliation aligns the last verified factor with the observed multiplier. Valuation and permission are separate decisions; inspect the evidence below."
+              : "Both lanes use the same per-economic-share price. The naive vault ignores the multiplier; the aware vault values the deposited raw amount in live economic units."}
+          <small>
+            Price basis: ${fmtPrice8(state.price)} per economic share. Raw ERC-20 balances do not
+            multiply. A quote already normalized per raw token must not be multiplied again. Replay
+            changes presentation only.
+          </small>
+        </p>
+      </div>
+    </section>
   );
 }
 
@@ -129,41 +161,133 @@ export function Lab() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
+  const [readAt, setReadAt] = useState<string | null>(null);
   const mounted = useRef(true);
+  const lock = useRef(false);
+  const generation = useRef(0);
+  const reading = useRef(false);
+  const latest = useRef<DemoState | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [retryAt, setRetryAt] = useState(0);
+  const [now, setNow] = useState(Date.now());
+  const [uncertain, setUncertain] = useState(false);
 
-  const refresh = useCallback(() => {
-    api
-      .demoState()
-      .then((s) => mounted.current && (setState(s), setReadError(null)))
-      .catch((e) => mounted.current && setReadError(e.message));
+  const refresh = useCallback(async (owned = false) => {
+    const ticket = ++generation.current;
+    reading.current = true;
+    try {
+      const s = await api.demoState();
+      if (!mounted.current || ticket !== generation.current) return;
+      const prev = latest.current;
+      if (
+        prev &&
+        !owned &&
+        (prev.step !== s.step || prev.runId !== s.runId || prev.demoActionId !== s.demoActionId)
+      ) {
+        setLog([]);
+        setNotice(
+          "Shared lab changed outside this page. Session evidence was cleared; missing execution history cannot be recovered. Reset the shared lab to capture a complete run.",
+        );
+      }
+      latest.current = s;
+      setState(s);
+      setReadAt(new Date().toISOString());
+      setReadError(null);
+      setUncertain(false);
+    } catch (e) {
+      if (mounted.current && ticket === generation.current) setReadError((e as Error).message);
+    } finally {
+      if (ticket === generation.current) reading.current = false;
+    }
   }, []);
 
   useEffect(() => {
     mounted.current = true;
-    refresh();
-    const t = setInterval(refresh, 2000);
-    return () => ((mounted.current = false), clearInterval(t));
+    void refresh();
+    const t = setInterval(() => {
+      setNow(Date.now());
+      if (!lock.current && !reading.current && document.visibilityState === "visible")
+        void refresh();
+    }, 2000);
+    return () => {
+      mounted.current = false;
+      generation.current++;
+      clearInterval(t);
+    };
   }, [refresh]);
 
   const act = async (fn: () => Promise<DemoStepResult>) => {
+    if (lock.current || Date.now() < retryAt || uncertain || readError || state?.busy) return;
+    lock.current = true;
+    generation.current++;
     setBusy(true);
     setErr(null);
+    const before = latest.current;
     try {
       const r = await fn();
-      setLog((l) => (r.step === "reset" && r.ok ? [r] : [...l, r]));
+      const expected = fn === api.demoReset ? "reset" : STEPS[before?.step ?? 0]?.key;
+      if (
+        r.step !== expected ||
+        (r.step !== "reset" && before?.runId && r.runId && before.runId !== r.runId)
+      ) {
+        setLog([]);
+        setNotice(
+          "Another visitor advanced the shared lab before this request. Execution evidence cannot be associated confidently; reset for a complete report.",
+        );
+      } else {
+        setLog((l) => (r.step === "reset" && r.ok ? [r] : [...l, r]));
+        if (r.step === "reset" && r.ok) setNotice(null);
+      }
       if (!r.ok) setErr(r.detail);
-      refresh();
+      await refresh(true);
+      const after = latest.current;
+      if (
+        after &&
+        ((r.runId && r.runId !== after.runId) ||
+          (r.ok && after.step !== (r.step === "reset" ? 0 : (before?.step ?? 0) + 1)))
+      ) {
+        setLog([]);
+        setNotice(
+          "Shared progress changed during execution. Session evidence was cleared because the response does not match the current run.",
+        );
+      }
     } catch (e) {
       setErr((e as Error).message);
+      if (e instanceof ApiError && e.status === 429) {
+        setRetryAt(e.retryAt);
+      } else {
+        setLog([]);
+        setUncertain(true);
+        setNotice(
+          "Request outcome uncertain. Refreshing authoritative state before another action; a retry advances the current shared step and may not repeat the previous request.",
+        );
+      }
+      await refresh();
     } finally {
+      lock.current = false;
       setBusy(false);
     }
   };
 
   if (readError && !state) {
-    return <Empty>demo unavailable: {readError} — start the api with demo keys configured.</Empty>;
+    return (
+      <div className="space-y-6">
+        <PageIntro
+          index="01 / SHARED SANDBOX"
+          title="Protocol Lab"
+          description="The experiment requires authoritative API reads."
+        />
+        <Empty>Demo unavailable: {readError}. No verified protection result is available.</Empty>
+      </div>
+    );
   }
-  if (!state) return <div className="shimmer h-64 rounded-lg" />;
+  if (!state)
+    return (
+      <div className="space-y-6">
+        <h1>Protocol Lab</h1>
+        <Empty>Loading authoritative sandbox state…</Empty>
+      </div>
+    );
 
   const nextLabel = STEPS[state.step]?.label ?? "done";
   const checks = [
@@ -194,7 +318,11 @@ export function Lab() {
     },
     {
       label: "Naive collateral seized",
-      pass: state.step === STEPS.length && state.vaults.naive.collateralRaw === "0",
+      pass:
+        state.step === STEPS.length &&
+        state.vaults.naive.collateralRaw === "0" &&
+        state.vaults.naive.collateralValue === "0" &&
+        state.vaults.naive.debt === "0",
     },
     {
       label: "Aware position retained",
@@ -209,7 +337,8 @@ export function Lab() {
         state.vaults.aware.healthFactor === "2000000000000000000",
     },
   ];
-  const verified = !busy && !readError && !err && checks.every((check) => check.pass);
+  const verified =
+    !busy && !state.busy && !uncertain && !readError && !err && checks.every((check) => check.pass);
   const exportEvidence = () => {
     const report = {
       schema: "corpshift.demo-evidence.v1",
@@ -220,7 +349,7 @@ export function Lab() {
       state,
       executionLog: log,
       scope:
-        "Browser-observed API snapshot; independently verify transaction receipts. Log contains only this page session. Stock and debt tokens are demo mocks; rejected calls are simulations.",
+        "Unsigned browser-observed API snapshot; reads are not pinned to one block; independently verify transaction receipts. Log contains only this page session. Stock and debt tokens are demo mocks; rejected calls are simulations.",
     };
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }),
@@ -248,28 +377,24 @@ export function Lab() {
             Robinhood testnet deployment is linked from Overview.
           </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => act(api.demoStep)}
-            disabled={busy || state.step >= STEPS.length}
-            className="rounded-md bg-green px-4 py-2 text-[13px] font-bold text-ink transition hover:brightness-110 disabled:opacity-40"
-          >
-            {busy
-              ? "executing…"
-              : state.step >= STEPS.length
-                ? "scenario complete"
-                : `▶ ${nextLabel}`}
-          </button>
-          <button
-            onClick={() => act(api.demoReset)}
-            disabled={busy}
-            className="rounded-md border border-edge-2 bg-panel px-4 py-2 text-[13px] font-semibold text-fg transition hover:border-fg-faint disabled:opacity-40"
-          >
-            reset
-          </button>
-        </div>
       </div>
 
+      <div className="shared-notice" role="status">
+        <strong>One shared lab.</strong> Executing changes the scenario for all visitors. Reset
+        affects everyone.
+        {state.busy && <p>Another operation is running. Waiting for authoritative state.</p>}
+        {now < retryAt && (
+          <p>
+            Rate limited · retry available in {Math.ceil((retryAt - now) / 1000)}s. No request will
+            be sent automatically.
+          </p>
+        )}
+        {notice && <p>{notice}</p>}
+      </div>
+      <p className="text-xs text-fg-dim">
+        Last successful API read: {readAt ?? "unavailable"}.{" "}
+        {readError ? "Retained values are stale." : "Reads are not pinned to one block."}
+      </p>
       {/* step tracker */}
       {(readError || err) && (
         <div
@@ -295,7 +420,9 @@ export function Lab() {
             }`}
             title={s.desc}
           >
-            <div className="font-mono text-[9px] uppercase tracking-widest opacity-70">{i + 1}</div>
+            <div className="font-mono text-[12px] uppercase tracking-widest opacity-70">
+              {i + 1}
+            </div>
             <div className="text-[11px] font-semibold leading-tight">{s.label}</div>
           </div>
         ))}
@@ -307,6 +434,44 @@ export function Lab() {
         </p>
       )}
 
+      <div className="lab-action-dock">
+        <p>
+          <strong>
+            {state.step < STEPS.length
+              ? `Step ${state.step + 1} of 6`
+              : "Six-step scenario complete"}
+          </strong>
+          <span>Shared Anvil sandbox · mock stock and mUSDG. Reset affects every visitor.</span>
+        </p>{" "}
+        <div className="flex gap-2">
+          <button
+            onClick={() => act(api.demoStep)}
+            disabled={
+              busy ||
+              !!readError ||
+              uncertain ||
+              !!state.busy ||
+              now < retryAt ||
+              state.step >= STEPS.length
+            }
+            className="rounded-md bg-green px-4 py-2 text-[13px] font-bold text-ink transition hover:brightness-110 disabled:opacity-40"
+          >
+            {busy
+              ? "executing…"
+              : state.step >= STEPS.length
+                ? "scenario complete"
+                : `▶ ${nextLabel}`}
+          </button>
+          <button
+            onClick={() => act(api.demoReset)}
+            disabled={busy || !!readError || uncertain || !!state.busy || now < retryAt}
+            className="rounded-md border border-edge-2 bg-panel px-4 py-2 text-[13px] font-semibold text-fg transition hover:border-fg-faint disabled:opacity-40"
+          >
+            Reset shared lab
+          </button>
+        </div>
+      </div>
+      <PairedMeasurements state={state} />
       {/* asset state strip */}
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-edge pb-4">
@@ -329,62 +494,37 @@ export function Lab() {
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-faint">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-fg-faint">
               asset state
             </div>
             <div className="mt-1">
               <StateBadge state={state.assetState} />
             </div>
           </div>
-          <Stat label="uiMultiplier (onchain)" value={fmtMult(state.uiMultiplier)} />
-          <Stat label="verified factor" value={fmtMult(state.verifiedFactor)} />
-          <Stat label="oracle price" value={`$${fmtPrice8(state.price)}`} />
-          <Stat label="user stock bal" value={fmt18(state.userStockBalance, 1)} />
+          <Stat label="observed multiplier" value={fmtMult(state.uiMultiplier)} />
+          <Stat label="last verified factor" value={fmtMult(state.verifiedFactor)} />
+          <Stat label="USD / economic share" value={`$${fmtPrice8(state.price)}`} />
+          <Stat label="wallet raw stock" value={fmt18(state.userStockBalance, 1)} />
         </div>
       </Card>
 
-      {/* the two vaults */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div>
-          <VaultPanel
-            name="NaiveVault"
-            tag="reads raw ERC-20 balances"
-            tone="naive"
-            v={state.vaults.naive}
-            liquidated={state.step >= 6 && state.vaults.naive.collateralRaw === "0"}
-          />
-          <p className="mt-2 px-1 font-mono text-[11px] leading-relaxed text-fg-faint">
-            collateralValue = rawBalance × price — blind to the multiplier
-          </p>
-        </div>
-        <div>
-          <VaultPanel
-            name="CorpShiftAwareVault"
-            tag="reads CorpShift economic units"
-            tone="aware"
-            v={state.vaults.aware}
-            liquidated={state.step >= 6 && state.vaults.aware.collateralRaw === "0"}
-          />
-          <p className="mt-2 px-1 font-mono text-[11px] leading-relaxed text-fg-faint">
-            collateralValue = economicUnits(raw × factor) × price — plus policy gates on every op
-          </p>
-        </div>
-      </div>
-
       {/* verdict — the money shot once the scenario completes */}
       {verified && (
-        <Card className="border-green/25">
+        <Card className="reconciliation-result border-green/25">
+          <Partition />
           <div className="text-center">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-fg-faint">
+            <div className="font-mono text-[12px] uppercase tracking-[0.2em] text-fg-faint">
               verdict — same chain · same user · same action
             </div>
             <div className="mt-4 grid gap-6 sm:grid-cols-2">
               <div>
-                <div className="font-mono text-4xl font-extrabold text-red">$0</div>
+                <div className="font-mono text-4xl font-extrabold text-red">
+                  ${fmt18(state.vaults.naive.collateralValue, 0)}
+                </div>
                 <div className="mt-1 text-[12px] text-fg-dim">
                   naive vault seized a healthy <strong className="text-fg">$1,000</strong> position
                 </div>
-                <div className="mt-1 font-mono text-[10px] text-red/80">
+                <div className="mt-1 font-mono text-[12px] text-red/80">
                   wrongful liquidation — raw-balance math
                 </div>
               </div>
@@ -396,15 +536,15 @@ export function Lab() {
                   aware vault kept the position at{" "}
                   <strong className="text-fg">HF {fmtHf(state.vaults.aware.healthFactor)}</strong>
                 </div>
-                <div className="mt-1 font-mono text-[10px] text-green/80">
+                <div className="mt-1 font-mono text-[12px] text-green/80">
                   protected — normalized units + policy gates
                 </div>
               </div>
             </div>
             <p className="mx-auto mt-5 max-w-xl border-t border-edge pt-4 text-[12px] leading-relaxed text-fg-dim">
               The 4:1 split was value-neutral — the only variable was whether the protocol asked
-              CorpShift what the collateral <em>means</em>. Every step above is a real transaction
-              against the deployed registry; reset and run it again.
+              CorpShift what the collateral <em>means</em>. Accepted writes have mined receipts;
+              expected rejections are decoded contract simulations.
             </p>
           </div>
         </Card>
@@ -414,6 +554,25 @@ export function Lab() {
         title="Verify the outcome"
         sub="Checks against the latest API state; export the inputs and transaction references."
       >
+        <p
+          className="evidence-status"
+          data-condition={readError ? "stale" : err ? "failed" : verified ? "complete" : "partial"}
+          role="status"
+        >
+          {readError
+            ? "Stale evidence — restore live reads before export."
+            : err
+              ? "Failed action — protection is not verified."
+              : verified
+                ? "Complete evidence — all eight checks passed."
+                : "Partial evidence — all eight checks and a clean read are required."}
+        </p>
+        {state.step === 6 && !log.length && (
+          <p className="mb-4 text-sm">
+            This shared scenario is complete, but this page has no execution history. Final balances
+            cannot establish protection. Reset shared lab to capture a complete session.
+          </p>
+        )}
         <div className="grid gap-2 sm:grid-cols-2">
           {checks.map((check) => (
             <div
@@ -423,19 +582,29 @@ export function Lab() {
               <span className={check.pass && !readError ? "text-green" : "text-fg-faint"}>
                 {readError ? "STALE" : check.pass ? "PASS" : "WAIT"}
               </span>
-              {check.label}
+              <span>
+                {check.label}
+                {!check.pass && (
+                  <small className="block">
+                    {state.step === 6
+                      ? "Required evidence missing from this session or current state."
+                      : "Awaiting scenario result and supporting evidence."}
+                  </small>
+                )}
+              </span>
             </div>
           ))}
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <p className="max-w-xl text-xs leading-relaxed text-fg-dim">
             Demo uses mock stock and mUSDG tokens. Accepted operations have transaction hashes;
-            rejected operations are contract simulations. The report is an inspectable snapshot, not
-            an independent audit or proof of production readiness.
+            rejected operations are contract simulations. Reads are not pinned to one block. The
+            report is an unsigned browser-observed API snapshot, not an independent audit or proof
+            of production readiness.
           </p>
           <button
             onClick={exportEvidence}
-            disabled={busy || !!readError}
+            disabled={busy || !!state.busy || uncertain || !!readError}
             className="rounded-md border border-edge-2 px-4 py-2 text-xs font-semibold hover:border-green disabled:opacity-40"
           >
             Export evidence
@@ -443,9 +612,16 @@ export function Lab() {
         </div>
       </Card>
 
+      <details className="raw-disclosure">
+        <summary>Inspect current API state, chain and contracts</summary>
+        <pre>{JSON.stringify(state, null, 2)}</pre>
+      </details>
       {/* execution log */}
       {log.length > 0 && (
-        <Card title="Execution log" sub="every step is real transactions — verify them onchain">
+        <Card
+          title="Execution log"
+          sub="Mined writes and expected rejected simulations captured by this page."
+        >
           <div className="space-y-4">
             {log.map((r, i) => (
               <div key={i} className="rounded-md border border-edge bg-panel-2 p-3">
@@ -472,6 +648,10 @@ export function Lab() {
                     ))}
                   </div>
                 )}
+                <details className="raw-disclosure mt-3">
+                  <summary>Raw step response</summary>
+                  <pre>{JSON.stringify(r, null, 2)}</pre>
+                </details>
                 {r.reverts?.map((rv, j) => (
                   <div key={j} className="mt-1.5 flex items-center gap-2 font-mono text-[11px]">
                     <span className="text-red">✗ {rv.label}</span>

@@ -73,23 +73,26 @@ export function App() {
               </NavLink>
             ))}
           </nav>
-          <div className="header-status">
+          <div
+            className="header-status"
+            title="API connectivity and configured chain identity. Health does not test RPC connectivity or data freshness."
+          >
             {down ? (
               <>
                 <LiveDot tone="bg-red" /> <span className="text-red">api offline</span>
               </>
             ) : health ? (
               <>
-                <LiveDot /> {health.chain} · {health.chainId}
+                <LiveDot /> API online · {health.chain} / {health.chainId}
               </>
             ) : (
-              "…"
+              "Connecting"
             )}
           </div>
         </div>
       </header>
 
-      <main className="app-main" id="main-content">
+      <main className="app-main" id="main-content" tabIndex={-1}>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/assets" element={<Assets />} />

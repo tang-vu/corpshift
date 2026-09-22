@@ -20,13 +20,15 @@ test.describe("protocol lab", () => {
     test.setTimeout(300_000);
     await page.goto("/lab");
     await expect(page.getByRole("heading", { name: "Protocol Lab" })).toBeVisible();
-    await expect(page.getByText("NaiveVault")).toBeVisible();
-    await expect(page.getByText("CorpShiftAwareVault")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /NaiveVault/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /CorpShiftAwareVault/ })).toBeVisible();
 
     // fresh run — reset then click through all six steps. Reset must restore
     // the verified-clean baseline (uiMultiplier 1.00×), not just claim to.
-    await page.getByRole("button", { name: "reset" }).click();
-    await expect(page.getByText("chain reverted to post-deploy snapshot")).toBeVisible({
+    await page.getByRole("button", { name: "Reset shared lab" }).click();
+    await expect(
+      page.getByText("chain reverted to post-deploy snapshot", { exact: true }),
+    ).toBeVisible({
       timeout: 30_000,
     });
     await expect(page.getByText("1.00×").first()).toBeVisible({ timeout: 30_000 });
@@ -63,7 +65,7 @@ test.describe("protocol lab", () => {
     // asset recovered to ACTIVE with the verified 4× factor
     await expect(page.getByText("ACTIVE").first()).toBeVisible();
     await expect(page.getByText("4.00×").first()).toBeVisible();
-    await expect(page.getByText("$25.00")).toBeVisible();
+    await expect(page.getByText("$25.00", { exact: true })).toBeVisible();
 
     // execution log contains real tx hashes (0x…)
     await expect(page.locator("text=/0x[0-9a-f]{6}…/i").first()).toBeVisible();
