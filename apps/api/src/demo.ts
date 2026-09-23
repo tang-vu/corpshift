@@ -11,6 +11,7 @@
  *   liquidate→ naive vault wrongfully liquidates the healthy position;
  *              the same call on the aware vault reverts NotLiquidatable
  */
+import { randomUUID } from "node:crypto";
 import {
   parseEther,
   type Address,
@@ -49,6 +50,7 @@ const POST_SPLIT_PRICE = 25n * 10n ** 8n; //     $25 (was $100)
 const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000" as Hex;
 
 export interface DemoStepResult {
+  runId?: string | undefined;
   step: string;
   ok: boolean;
   detail: string;
@@ -249,8 +251,15 @@ export class DemoConductor {
         };
       }
       this.setStep(0);
+      this.store.setMeta("demo.runId", randomUUID());
       this.store.setMeta("demo.actionId", "");
-      return { step: "reset", ok: true, detail: "chain reverted to post-deploy snapshot", txs: [] };
+      return {
+        step: "reset",
+        ok: true,
+        detail: "chain reverted to post-deploy snapshot",
+        txs: [],
+        runId: this.store.getMeta("demo.runId"),
+      };
     } finally {
       this.busy = false;
     }
@@ -613,7 +622,8 @@ export class DemoConductor {
     }
     this.busy = true;
     try {
-      return await steps[at]!();
+      const result = await steps[at]!();
+      return { ...result, runId: this.store.getMeta("demo.runId") };
     } finally {
       this.busy = false;
     }
@@ -621,6 +631,7 @@ export class DemoConductor {
 
   /** ensure the evm snapshot exists (call once at boot on local chains). */
   async prepare(): Promise<void> {
+    this.store.setMeta("demo.runId", randomUUID());
     if (this.isLocal && !this.snapshotId) {
       this.snapshotId = (await this.pub.request({
         method: "evm_snapshot" as never,
@@ -698,6 +709,8 @@ export class DemoConductor {
     }
     return {
       step: this.metaStep(),
+      runId: this.store.getMeta("demo.runId"),
+      busy: this.busy,
       chainId: this.cfg.chainId,
       registry: this.cfg.manifest.registry,
       contracts: {

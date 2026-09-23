@@ -1,26 +1,56 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type SourceStatus } from "../lib/api";
+import deployment from "../../../../deployments/46630-evidence.json";
 import testnet from "../../../../deployments/46630.json";
 
 function SplitInstrument() {
-  const [split, setSplit] = useState(false);
+  const [chapter, setChapter] = useState(0);
+  const split = chapter >= 2;
+  const chapters = [
+    [
+      "Observe",
+      "Initial position",
+      "10 raw tokens represent 10 economic shares. At $100 per economic share, collateral is $1,000.",
+    ],
+    [
+      "Attest",
+      "Adjustment pending",
+      "An attested 4:1 split signals a coming change. Policy gates restrict new exposure; units have not changed yet.",
+    ],
+    [
+      "Reconcile",
+      "Units change. Value stays.",
+      "10 raw tokens now represent 40 economic shares at $25 each. Observed factor: 4×. Last verified: 1× until reconciliation.",
+    ],
+    [
+      "Protect",
+      "Agreement restored",
+      "Reconciliation verifies the 4× factor. Correctly normalized collateral remains $1,000. Raw ERC-20 balance is still 10.",
+    ],
+  ];
   return (
-    <div className={`split-instrument ${split ? "is-split" : ""}`}>
+    <div data-chapter={chapter} className={`split-instrument ${split ? "is-split" : ""}`}>
       <div className="instrument-top">
         <span>FIG. 01 / ECONOMIC CONTINUITY</span>
         <span className="instrument-cross">+</span>
       </div>
       <div className="instrument-stage" aria-hidden="true">
         <div className="instrument-grid" />
-        <div className="axis-label axis-top">CORPORATE ACTION</div>
+        <div className="axis-label axis-top">
+          {
+            ["INTACT POSITION", "ADJUSTMENT PENDING", "OBSERVED ≠ VERIFIED", "RECONCILED POSITION"][
+              chapter
+            ]
+          }
+        </div>
         <div className="share-stack">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className={`share-sheet share-${i}`}>
               <span>XYZT</span>
               <div className="sheet-mark">{split ? "¼" : "1"}</div>
               <div className="sheet-foot">
-                <span>ECONOMIC UNIT</span>
+                <span>VALUE PARTITION</span>
                 <span>{String(i + 1).padStart(2, "0")}</span>
               </div>
             </div>
@@ -46,10 +76,10 @@ function SplitInstrument() {
       </div>
       <div className="instrument-control">
         <div className="split-switch" role="group" aria-label="Illustrate a stock split">
-          <button aria-pressed={!split} onClick={() => setSplit(false)}>
+          <button aria-pressed={!split} onClick={() => setChapter(0)}>
             Before split <span>1:1</span>
           </button>
-          <button aria-pressed={split} onClick={() => setSplit(true)}>
+          <button aria-pressed={split} onClick={() => setChapter(2)}>
             After split <span>4:1</span>
           </button>
         </div>
@@ -57,8 +87,21 @@ function SplitInstrument() {
           {split ? "40 × $25" : "10 × $100"}
         </span>
       </div>
+      <div className="chapter-controls" role="group" aria-label="Continuity chapters">
+        {chapters.map(([label], i) => (
+          <button key={label} aria-pressed={chapter === i} onClick={() => setChapter(i)}>
+            <span>0{i + 1}</span>
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="chapter-caption" aria-live="polite">
+        <strong>{chapters[chapter]?.[1]}</strong>
+        <p>{chapters[chapter]?.[2]}</p>
+      </div>
       <div className="instrument-disclaimer">
-        Interactive illustration · explore real transactions in Protocol Lab
+        Illustrative only · USD per economic share. Never multiply a price already normalized per
+        raw token. Controls send no transactions.
       </div>
     </div>
   );
@@ -67,7 +110,7 @@ function SplitInstrument() {
 const FLOW = [
   ["Observe", "A corporate action arrives.", "Source evidence"],
   ["Attest", "The event becomes verifiable.", "EIP-712 signature"],
-  ["Reconcile", "Onchain units catch up.", "Verified multiplier"],
+  ["Reconcile", "Observed units are verified.", "Verified multiplier"],
   ["Protect", "Protocols act on the right value.", "Policy + accounting"],
 ];
 
@@ -131,13 +174,15 @@ export function Landing() {
         </div>
         <div className="deployment-number">
           <strong>
-            10<span>↗</span>
+            {Object.keys(deployment.contracts).length}
+            <span>↗</span>
           </strong>
           <span>DEPLOYED CONTRACTS</span>
         </div>
         <div className="deployment-number">
           <strong>
-            17<span>✓</span>
+            {deployment.receipts.filter((r) => r.status === "success").length}
+            <span>✓</span>
           </strong>
           <span>SUCCESSFUL RECEIPTS</span>
         </div>
@@ -152,12 +197,19 @@ export function Landing() {
           <a href="/proof/deployment.json" target="_blank" rel="noreferrer">
             Deployment receipts <span>↗</span>
           </a>
+          <a href="/proof/manifest.json" target="_blank" rel="noreferrer">
+            Deployment manifest <span>↳</span>
+          </a>
           <p>
             Testnet · mock stock & mUSDG
             <br />
-            Verified September 22, 2026
+            Snapshot {deployment.verifiedAt.slice(0, 10)}
           </p>
         </div>
+        <p className="deployment-scope">
+          {deployment.scope} Build-to-deployment match unknown (manifest gitCommit is unknown). This
+          record is separate from the running Anvil lab.
+        </p>
       </section>
 
       <section className="mechanism-section" id="mechanism">
@@ -256,9 +308,19 @@ export function Landing() {
           ))}
         </div>
         <p>
+          Source mode: unknown (not supplied by API). Last indexer tick:{" "}
+          {src?.lastTick ?? "unavailable"}. Last indexed block: {src?.lastBlock ?? "unavailable"}.
           Fixture assets without a deployment on this sandbox appear as normalization failures.
           Public testnet receipts are provided separately above.
         </p>
+        {!!src?.normalizationFailures.length && (
+          <details className="raw-disclosure">
+            <summary>
+              Inspect normalization failures ({src.normalizationFailures.length} recent records)
+            </summary>
+            <pre>{JSON.stringify(src.normalizationFailures, null, 2)}</pre>
+          </details>
+        )}
       </section>
       <section className="closing-line">
         <span className="eyebrow">BUILT FOR THE NEXT LAYER OF FINANCE</span>

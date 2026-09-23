@@ -3,7 +3,7 @@
 ## Product design
 
 1. **Economic truth over raw state.** Never expose `balanceOf` as "the
-   balance" — always `economicUnits(raw)` with the *verified* factor. Raw
+   balance" — use live adapter `economicUnits(raw)` and show the last verified factor separately. Raw
    values are labeled "raw" everywhere (UI, API fields like `collateralRaw`).
 2. **Verify, don't assert.** The registry never trusts that an action
    happened — `applyAction` checks the token's live multiplier. The same
@@ -16,8 +16,7 @@
 4. **State machine as the contract surface.** Consumers read one enum, not a
    pile of flags. Every transition emits the causal `actionId` — the audit
    trail is the feature.
-5. **Risk-off by default.** Policy matrix allows exits (withdraw, settle,
-   reads) in every state; new exposure requires `ACTIVE`.
+5. **Risk-off by default.** Read the actual operation matrix. The seeded `ADJUSTING` state permits only `PRICE_READ`; withdrawals are not universally available. Governance may override defaults.
 
 ## API design
 
@@ -30,10 +29,9 @@
 - Shared SQLite between api + indexer: WAL + busy_timeout; writers use
   transactions.
 
-## UI design — institutional market-infrastructure aesthetic
+## UI design — Continuity Engine (current)
 
-- Dark terminal theme; monospace for all data (addresses, amounts, states),
-  sans for prose.
+- Warm paper, dark green ink and vermilion, as specified in `frontend-design.md`. DM Sans for hierarchy, Instrument Serif for editorial emphasis, IBM Plex Mono for measurements. The former dark terminal direction is superseded.
 - State language is color-coded consistently everywhere:
   `ACTIVE` green, `ACTION_PENDING`/`ADJUSTING` amber, `HALTED`/`DEGRADED`/
   `LIQUIDATED` red, terminal states faint.
@@ -41,12 +39,12 @@
   contrast is the story; divergence must be visible without reading.
 - Every transaction hash links to an explorer (`HexLink`); local chains show
   truncated hex without links (no explorer exists — don't fake it).
-- Step tracker mirrors the six-stage scenario; execution log appends real
-  `DemoStepResult`s — the UI never simulates what the api did.
+- Step tracker mirrors the six-stage scenario; execution log appends actual
+  `DemoStepResult`s, distinguishing mined writes and rejected simulations. Missing session history is not reconstructed.
 - Loading states: shimmer skeletons for cold loads, `executing…` on the
   action button during a step, error line for api failures.
 - Compact density — dashboards, not marketing pages. Numbers right-aligned
-  or in fixed columns; no animated chart junk.
+  or in fixed columns; motion explains observed results, supports reduced motion and never executes writes.
 
 ## Contracts style
 

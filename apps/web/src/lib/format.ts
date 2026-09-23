@@ -7,18 +7,17 @@ export function shortHex(hex: string, chars = 6): string {
 
 /** 18dp fixed-point → compact decimal string. */
 export function fmt18(v: string | bigint, digits = 2): string {
-  const n = Number(BigInt(v)) / 1e18;
-  return fmt(n, digits);
+  return fixed(v, 18, digits);
 }
 
 /** 8dp oracle price → dollars. */
 export function fmtPrice8(v: string | bigint): string {
-  return fmt(Number(BigInt(v)) / 1e8, 2);
+  return fixed(v, 8, 2);
 }
 
 /** 6dp debt token → dollars. */
 export function fmtUsd6(v: string | bigint): string {
-  return fmt(Number(BigInt(v)) / 1e6, 2);
+  return fixed(v, 6, 2);
 }
 
 export function fmt(n: number, digits = 2): string {
@@ -39,7 +38,7 @@ export function fmtHf(v: string | bigint): string {
 
 /** multiplier 18dp → "4.00×" */
 export function fmtMult(v: string | bigint): string {
-  return `${fmt(Number(BigInt(v)) / 1e18, 2)}×`;
+  return `${fixed(v, 18, 2)}×`;
 }
 
 export function fmtTs(sec: number | bigint | null | undefined): string {
@@ -53,4 +52,29 @@ export function timeUntil(sec: number | bigint): string {
   if (d < 120) return `${d}s`;
   if (d < 7200) return `${Math.floor(d / 60)}m`;
   return `${Math.floor(d / 3600)}h ${Math.floor((d % 3600) / 60)}m`;
+}
+
+/** Round only at the display boundary, retaining arbitrary integer precision. */
+function fixed(value: string | bigint, decimals: number, digits: number): string {
+  const n = BigInt(value);
+  const negative = n < 0n;
+  const abs = negative ? -n : n;
+  const divisor = 10n ** BigInt(decimals - digits);
+  const rounded = (abs + divisor / 2n) / divisor;
+  const text = rounded.toString().padStart(digits + 1, "0");
+  const whole = (digits ? text.slice(0, -digits) : text).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${negative ? "-" : ""}${whole}${digits ? `.${text.slice(-digits)}` : ""}`;
+}
+
+/** PolicyEngine reasons are zero or right-padded ASCII bytes32, not hashes. */
+export function fmtReason(reason: string): string {
+  if (/^0x0{64}$/.test(reason)) return "OK (zero code)";
+  if (!/^0x[0-9a-fA-F]{64}$/.test(reason)) return reason;
+  const decoded = String.fromCharCode(
+    ...reason
+      .slice(2)
+      .match(/../g)!
+      .map((byte) => parseInt(byte, 16)),
+  ).replace(/\0+$/, "");
+  return /^[A-Z_]+$/.test(decoded) ? decoded : "Unrecognized code";
 }

@@ -57,8 +57,7 @@ docker compose up --build   # then open http://localhost:8056/lab
 | 4:1 split attested (`ACTION_PENDING`) | allows more borrowing | **blocks** new borrows |
 | Split executes: mult 4×, price $25 | sees collateral $250 → **liquidates a healthy position** | sees 40 econ units → $1,000 → **HF 2.00, untouched** |
 
-Same user, same collateral, same corporate action — diametrically opposed
-outcomes, each step a real onchain transaction you can verify.
+Same user, same collateral, same corporate action — paired outcomes backed by successful mined writes and decoded expected rejected simulations. The browser report is unsigned and reads are not pinned to one block.
 
 ---
 
@@ -74,6 +73,24 @@ outcomes, each step a real onchain transaction you can verify.
 | Web | `apps/web` | Vite + React + Tailwind: landing, assets, actions, policy playground, **Protocol Lab** |
 | Demo | `scripts/` | `demo.mjs` (stack orchestrator), `demo-check.mjs` (acceptance assertions) |
 | E2E | `test/e2e` | Playwright — drives the full killer scenario through the real UI |
+
+## Product experience
+
+The Continuity Engine retains the editorial overview and adds guided, read-only
+split chapters, a paired Protocol Lab, searchable asset register, causal asset
+history, corporate-action dossiers and a policy operation inspector. Essential
+values stay paired on mobile. Replay controls never execute transactions.
+
+The public Anvil lab is shared. **Reset shared lab affects every visitor.**
+The UI respects HTTP 429 Retry-After, refreshes after uncertain writes, and
+invalidates session evidence when observed progress belongs to another run.
+A completed scenario after a page refresh does not establish verified protection
+without the page-session execution evidence. Separate Robinhood deployment
+records retain their limited scope and unknown build commit.
+
+See [frontend design](docs/frontend-design.md) for interaction semantics and
+isolated validation configuration, and [visual review](docs/visual-review/README.md)
+for route screenshots and validation results.
 
 ## Architecture
 

@@ -58,7 +58,7 @@ are simulations with decoded custom errors, not mined failed transactions.
 Accepted writes have transaction hashes. The JSON is an API snapshot, not a
 signed proof; verify receipts against the chain used by the demo. Refreshing
 the page discards the browser execution log, so rerun from reset for a complete
-session report. Reset is available only on the local chain.
+session report. Reset is available only on the local chain and affects every visitor of the shared lab. An uncertain timeout must be followed by a state read before another write: the step endpoint advances the current step and is not idempotent.
 
 ## 4. Validate your consumer
 
