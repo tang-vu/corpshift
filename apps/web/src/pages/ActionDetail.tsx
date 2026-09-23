@@ -11,6 +11,7 @@ import {
   TrustBadge,
 } from "../components/ui";
 import { fmtTs, fmtMult, timeUntil } from "../lib/format";
+import { DossierAssembly } from "../components/DossierAssembly";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -55,6 +56,7 @@ export function ActionDetail() {
       {err && <Empty>{err === "not found" ? "action not indexed" : `api error: ${err}`}</Empty>}
       {data && (
         <>
+          <DossierAssembly action={data} events={data.events} />
           <Card>
             <div className="mb-4 flex flex-wrap items-center gap-3">
               <TypeBadge type={data.actionType} />

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, ApiError, type DemoState, type DemoStepResult } from "../lib/api";
+import { api, ApiError, type DemoState, type DemoStepResult, type PolicyResult } from "../lib/api";
 import { Card, Empty, PageIntro, Partition, HexLink, StateBadge, Stat } from "../components/ui";
 import { fmt18, fmtHf, fmtMult, fmtPrice8, fmtUsd6, shortHex, timeUntil } from "../lib/format";
+import { ComparisonInstrument } from "../components/ComparisonInstrument";
 
 const STEPS = [
   {
@@ -26,6 +27,17 @@ function hfTone(v: string): string {
 /** The demo scenario walks the canonical economic-action path. The final
  *  ACTIVE node lights once reconcile restores safe operation. */
 const RAIL = ["ACTIVE", "ACTION_PENDING", "ADJUSTING", "ACTIVE"];
+const POLICY_OPS = [
+  "DEPOSIT",
+  "WITHDRAW",
+  "BORROW",
+  "LIQUIDATE",
+  "CREATE_ORDER",
+  "SETTLE",
+  "TRANSFER",
+  "USE_AS_COLLATERAL",
+  "PRICE_READ",
+];
 
 function StateRail({ assetState, step }: { assetState: string; step: number }) {
   const idx =
@@ -66,8 +78,33 @@ function StateRail({ assetState, step }: { assetState: string; step: number }) {
   );
 }
 
-function PairedMeasurements({ state }: { state: DemoState }) {
+function PairedMeasurements({
+  state,
+  history,
+  log,
+}: {
+  state: DemoState;
+  history: DemoState[];
+  log: DemoStepResult[];
+}) {
   const [replay, setReplay] = useState(0);
+  const [policy, setPolicy] = useState<PolicyResult[] | null>(null);
+  useEffect(() => {
+    if (state.assetState !== "ADJUSTING") return;
+    let active = true;
+    setPolicy(null);
+    Promise.all(POLICY_OPS.map((_, i) => api.policy(state.asset, i)))
+      .then((values) => {
+        if (active) setPolicy(values);
+      })
+      .catch(() => {
+        if (active) setPolicy(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [state.asset, state.assetState, state.step, state.runId]);
+  const previous = history.length > 1 ? (history[history.length - 2] ?? null) : null;
   const { naive, aware } = state.vaults;
   const units = (raw: string) =>
     fmt18((BigInt(raw) * BigInt(state.normalizationFactor)) / 10n ** 18n, 2);
@@ -87,6 +124,23 @@ function PairedMeasurements({ state }: { state: DemoState }) {
         <span className="eyebrow">SAME POSITION / TWO ACCOUNTING SYSTEMS</span>
         <button onClick={() => setReplay(replay + 1)}>Replay visual ↻</button>
       </div>
+      <ComparisonInstrument state={state} previous={previous} log={log} replay={replay} />
+      {state.assetState === "ADJUSTING" && (
+        <div className="comparison-policy">
+          <strong>Live operation policy / ADJUSTING</strong>
+          <div>
+            {POLICY_OPS.map((name, i) => (
+              <span key={name} data-allowed={policy?.[i]?.allowed ? "true" : "false"}>
+                {name} · {policy ? (policy[i]?.allowed ? "allowed" : "blocked") : "reading…"}
+              </span>
+            ))}
+          </div>
+          <p>
+            Decisions shown above are read from the current policy endpoint. PRICE_READ is permitted
+            by the reviewed default while the other operations are blocked.
+          </p>
+        </div>
+      )}
       <div className="pair-heading">
         <span>Current API observation</span>
         <h2>
@@ -157,6 +211,7 @@ function PairedMeasurements({ state }: { state: DemoState }) {
 
 export function Lab() {
   const [state, setState] = useState<DemoState | null>(null);
+  const [history, setHistory] = useState<DemoState[]>([]);
   const [log, setLog] = useState<DemoStepResult[]>([]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -185,12 +240,18 @@ export function Lab() {
         (prev.step !== s.step || prev.runId !== s.runId || prev.demoActionId !== s.demoActionId)
       ) {
         setLog([]);
+        setHistory([s]);
         setNotice(
           "Shared lab changed outside this page. Session evidence was cleared; missing execution history cannot be recovered. Reset the shared lab to capture a complete run.",
         );
       }
       latest.current = s;
       setState(s);
+      if (!prev) setHistory([s]);
+      else if (owned)
+        setHistory((items) =>
+          prev.runId !== s.runId ? [s] : [...items.filter((item) => item.step !== s.step), s],
+        );
       setReadAt(new Date().toISOString());
       setReadError(null);
       setUncertain(false);
@@ -231,6 +292,7 @@ export function Lab() {
         (r.step !== "reset" && before?.runId && r.runId && before.runId !== r.runId)
       ) {
         setLog([]);
+        setHistory([]);
         setNotice(
           "Another visitor advanced the shared lab before this request. Execution evidence cannot be associated confidently; reset for a complete report.",
         );
@@ -247,6 +309,7 @@ export function Lab() {
           (r.ok && after.step !== (r.step === "reset" ? 0 : (before?.step ?? 0) + 1)))
       ) {
         setLog([]);
+        setHistory([after]);
         setNotice(
           "Shared progress changed during execution. Session evidence was cleared because the response does not match the current run.",
         );
@@ -471,7 +534,7 @@ export function Lab() {
           </button>
         </div>
       </div>
-      <PairedMeasurements state={state} />
+      <PairedMeasurements state={state} history={history} log={log} />
       {/* asset state strip */}
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-edge pb-4">

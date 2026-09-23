@@ -1,111 +1,13 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type SourceStatus } from "../lib/api";
+const ContinuitySpecimen = lazy(() =>
+  import("../components/ContinuitySpecimen").then((module) => ({
+    default: module.ContinuitySpecimen,
+  })),
+);
 import deployment from "../../../../deployments/46630-evidence.json";
 import testnet from "../../../../deployments/46630.json";
-
-function SplitInstrument() {
-  const [chapter, setChapter] = useState(0);
-  const split = chapter >= 2;
-  const chapters = [
-    [
-      "Observe",
-      "Initial position",
-      "10 raw tokens represent 10 economic shares. At $100 per economic share, collateral is $1,000.",
-    ],
-    [
-      "Attest",
-      "Adjustment pending",
-      "An attested 4:1 split signals a coming change. Policy gates restrict new exposure; units have not changed yet.",
-    ],
-    [
-      "Reconcile",
-      "Units change. Value stays.",
-      "10 raw tokens now represent 40 economic shares at $25 each. Observed factor: 4×. Last verified: 1× until reconciliation.",
-    ],
-    [
-      "Protect",
-      "Agreement restored",
-      "Reconciliation verifies the 4× factor. Correctly normalized collateral remains $1,000. Raw ERC-20 balance is still 10.",
-    ],
-  ];
-  return (
-    <div data-chapter={chapter} className={`split-instrument ${split ? "is-split" : ""}`}>
-      <div className="instrument-top">
-        <span>FIG. 01 / ECONOMIC CONTINUITY</span>
-        <span className="instrument-cross">+</span>
-      </div>
-      <div className="instrument-stage" aria-hidden="true">
-        <div className="instrument-grid" />
-        <div className="axis-label axis-top">
-          {
-            ["INTACT POSITION", "ADJUSTMENT PENDING", "OBSERVED ≠ VERIFIED", "RECONCILED POSITION"][
-              chapter
-            ]
-          }
-        </div>
-        <div className="share-stack">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className={`share-sheet share-${i}`}>
-              <span>XYZT</span>
-              <div className="sheet-mark">{split ? "¼" : "1"}</div>
-              <div className="sheet-foot">
-                <span>VALUE PARTITION</span>
-                <span>{String(i + 1).padStart(2, "0")}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="axis-label axis-bottom">
-          <span>10 RAW TOKENS</span>
-          <span>{split ? "40 ECONOMIC UNITS" : "10 ECONOMIC UNITS"}</span>
-        </div>
-        <span className="coordinate coordinate-left">Y / VALUE</span>
-        <span className="coordinate coordinate-right">X / TIME</span>
-      </div>
-      <div className="instrument-readout">
-        <div>
-          <span className="micro-label">Collateral value</span>
-          <strong aria-live="polite">
-            $1,000<span>.00</span>
-          </strong>
-        </div>
-        <span className="preserved-label">
-          <span /> VALUE PRESERVED
-        </span>
-      </div>
-      <div className="instrument-control">
-        <div className="split-switch" role="group" aria-label="Illustrate a stock split">
-          <button aria-pressed={!split} onClick={() => setChapter(0)}>
-            Before split <span>1:1</span>
-          </button>
-          <button aria-pressed={split} onClick={() => setChapter(2)}>
-            After split <span>4:1</span>
-          </button>
-        </div>
-        <span className="instrument-equation" aria-live="polite">
-          {split ? "40 × $25" : "10 × $100"}
-        </span>
-      </div>
-      <div className="chapter-controls" role="group" aria-label="Continuity chapters">
-        {chapters.map(([label], i) => (
-          <button key={label} aria-pressed={chapter === i} onClick={() => setChapter(i)}>
-            <span>0{i + 1}</span>
-            {label}
-          </button>
-        ))}
-      </div>
-      <div className="chapter-caption" aria-live="polite">
-        <strong>{chapters[chapter]?.[1]}</strong>
-        <p>{chapters[chapter]?.[2]}</p>
-      </div>
-      <div className="instrument-disclaimer">
-        Illustrative only · USD per economic share. Never multiply a price already normalized per
-        raw token. Controls send no transactions.
-      </div>
-    </div>
-  );
-}
 
 const FLOW = [
   ["Observe", "A corporate action arrives.", "Source evidence"],
@@ -151,6 +53,9 @@ export function Landing() {
               See how it works <span aria-hidden="true">↓</span>
             </a>
           </div>
+          <div className="hero-scroll-cue" aria-hidden="true">
+            SCROLL TO RECONCILE <span>↓</span>
+          </div>
           <div className="hero-footnote">
             <span className="tiny-rule" />
             <p>
@@ -160,7 +65,15 @@ export function Landing() {
             </p>
           </div>
         </div>
-        <SplitInstrument />
+        <Suspense
+          fallback={
+            <div className="split-instrument specimen-loading" role="status">
+              Preparing continuity specimen…
+            </div>
+          }
+        >
+          <ContinuitySpecimen />
+        </Suspense>
       </section>
 
       <section className="deployment-band" aria-label="Testnet deployment">
