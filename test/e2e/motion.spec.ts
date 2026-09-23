@@ -19,8 +19,17 @@ test("specimen chapter seeks and reverse scroll remain read only", async ({ page
   await expect(specimen).toHaveAttribute("data-beat", "dock");
   await page.getByRole("button", { name: "After split" }).click();
   await expect(specimen).toHaveAttribute("data-beat", "divergence");
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(950);
+  await page.evaluate(() => {
+    const hero = document.querySelector(".editorial-hero")!;
+    window.scrollTo(0, hero.getBoundingClientRect().bottom + scrollY - innerHeight);
+  });
+  await expect(specimen).toHaveAttribute("data-beat", "carry");
+  await page.evaluate(() => {
+    const hero = document.querySelector(".editorial-hero")!;
+    window.scrollTo(0, hero.getBoundingClientRect().top + scrollY);
+  });
+  await expect(specimen).toHaveAttribute("data-beat", "approach");
   await page.getByRole("button", { name: "Before split" }).click();
   await expect(specimen).toHaveAttribute("data-beat", "approach");
   await page.getByRole("link", { name: "Enter Protocol Lab" }).click();
@@ -88,6 +97,10 @@ test("comparison replay uses the confirmed observation and never writes", async 
   await expect(page.locator(".comparison-policy")).toContainText("PRICE_READ · allowed");
   await page.getByRole("button", { name: /Replay visual/ }).click();
   await page.getByRole("button", { name: /Replay visual/ }).click();
+  await page.locator(".comparison-dossier-link").click();
+  await expect(page.locator("#lab-evidence-assembly")).toContainText("Evidence gap");
+  await page.getByRole("button", { name: /Replay assembly/ }).click();
+  await expect(page).toHaveURL(/#lab-evidence-assembly$/);
   expect(writes).toEqual([]);
 });
 

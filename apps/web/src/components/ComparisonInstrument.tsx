@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
 import { type DemoState, type DemoStepResult } from "../lib/api";
 import { fmt18, fmtMult, fmtPrice8, shortHex } from "../lib/format";
 import { createSceneController } from "../lib/scene";
@@ -162,9 +161,13 @@ export function ComparisonInstrument({
         </div>
       )}
       {state.demoActionId && (
-        <Link className="comparison-dossier-link" to={`/actions/${state.demoActionId}`}>
-          Follow the attested action into its evidence dossier →
-        </Link>
+        <a
+          className="comparison-dossier-link"
+          href="#lab-evidence-assembly"
+          onClick={() => window.dispatchEvent(new Event("corpshift:dossier-replay"))}
+        >
+          Follow this action into its evidence assembly →
+        </a>
       )}
     </div>
   );

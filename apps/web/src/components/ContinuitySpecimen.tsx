@@ -111,6 +111,10 @@ export function ContinuitySpecimen() {
       roughness: 0.42,
       metalness: 0.12,
     });
+    const redTone = vermilion.color.clone();
+    const amberTone = amber.color.clone();
+    const greenTone = green.color.clone();
+    const slipRed = vermilion.clone();
     const box = (
       w: number,
       h: number,
@@ -148,12 +152,12 @@ export function ContinuitySpecimen() {
       holders.push(group);
       partitions.push(cells);
     }
-    const observed = box(4.85, 0.045, 0.07, amber, instrument, 0, 1.46, 0.22);
-    const verified = box(4.85, 0.045, 0.07, gold, instrument, 0, -1.46, 0.22);
+    const observed = box(4.85, 0.045, 0.07, amber, instrument, 0, 0.06, 0.3);
+    const verified = box(4.85, 0.045, 0.07, gold, instrument, 0, -0.06, 0.3);
     const slip = new THREE.Group();
     instrument.add(slip);
     box(0.72, 0.96, 0.065, ceramic, slip);
-    box(0.53, 0.065, 0.016, vermilion, slip, 0, 0.27, 0.047);
+    box(0.53, 0.065, 0.016, slipRed, slip, 0, 0.27, 0.047);
     box(0.53, 0.025, 0.016, gold, slip, 0, 0.08, 0.047);
     slip.position.set(-4.3, 2.2, 1.3);
     const groundMaterial = new THREE.MeshStandardMaterial({ color: 0xd6d5c4, roughness: 1 });
@@ -185,6 +189,7 @@ export function ContinuitySpecimen() {
       const partition = smooth(span(p, SPECIMEN_BEATS.partition, SPECIMEN_BEATS.divergence));
       const mismatch = smooth(span(p, SPECIMEN_BEATS.divergence, SPECIMEN_BEATS.reconcile));
       const reconcile = smooth(span(p, SPECIMEN_BEATS.reconcile, SPECIMEN_BEATS.carry));
+      const supported = smooth(span(p, 0.82, SPECIMEN_BEATS.carry));
       const carry = smooth(span(p, SPECIMEN_BEATS.carry, SPECIMEN_BEATS.end));
       camera.position.set(
         3.1 - 0.7 * approach + 0.55 * mismatch,
@@ -204,18 +209,18 @@ export function ContinuitySpecimen() {
           cell.position.x = (j - 1.5) * 0.19 * partition;
           cell.position.z = 0.15 + 0.045 * partition;
           cell.visible = partition > 0.02 || j === 0;
-          cell.material = reconcile > 0.9 ? green : vermilion;
         }),
       );
+      vermilion.color.copy(redTone).lerp(greenTone, supported);
+      amber.color.copy(amberTone).lerp(greenTone, supported);
       slip.position.set(
         -4.3 + 4.3 * docking + 3.6 * carry,
         2.2 - 2.2 * docking + 0.8 * carry,
         1.3 - 0.77 * docking,
       );
       slip.rotation.z = -0.22 + 0.22 * docking - 0.35 * carry;
-      observed.position.y = 1.46 + 0.34 * mismatch * (1 - reconcile);
-      verified.position.y = -1.46 - 0.34 * mismatch * (1 - reconcile);
-      observed.material = reconcile > 0.8 ? green : amber;
+      observed.position.y = 0.06 + 0.2 * mismatch * (1 - reconcile);
+      verified.position.y = -0.06 - 0.2 * mismatch * (1 - reconcile);
       root.dataset.beat =
         p < 0.12
           ? "approach"
@@ -238,6 +243,11 @@ export function ContinuitySpecimen() {
       root.style.setProperty("--partition", String(partition));
       root.style.setProperty("--mismatch", String(mismatch * (1 - reconcile)));
       root.style.setProperty("--reconciled", String(reconcile));
+      root.style.setProperty(
+        "--mismatch-label",
+        String(mismatch * (1 - smooth(span(p, 0.8, 0.85)))),
+      );
+      root.style.setProperty("--supported-label", String(smooth(span(p, 0.85, 0.9))));
       if (inView) renderer.render(scene, camera);
     };
     controller.current = createSceneController(
@@ -254,7 +264,7 @@ export function ContinuitySpecimen() {
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) object.geometry.dispose();
       });
-      [ceramic, rim, vermilion, gold, amber, green, groundMaterial].forEach((material) =>
+      [ceramic, rim, vermilion, slipRed, gold, amber, green, groundMaterial].forEach((material) =>
         material.dispose(),
       );
       renderer.dispose();

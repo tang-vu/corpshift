@@ -28,7 +28,7 @@ export function DossierAssembly({ action, events }: { action: ActionItem; events
           String(Math.max(0, Math.min(1, (p - 0.55) / 0.45))),
         );
       },
-      { intro: 1 },
+      { intro: 1, introOnView: true },
     );
     return () => controller.destroy();
   }, [action.actionId]);

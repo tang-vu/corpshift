@@ -52,6 +52,13 @@ copyable identifiers remain below the animation. A production frontend build
 emits `/build-stamp.json` with its source SHA and build time; this stamp is
 separate from the contract deployment manifest.
 
+The Lab's onchain demo action may have no canonical row in the indexer. Its
+comparison link therefore opens a page-session evidence assembly in Lab, with
+the captured attestation receipt, observed and verified factors, and any
+indexed events returned for that action. Absent issuer source facts, canonical
+payload bytes, or indexed events are marked as gaps; the UI does not turn a
+demo action ID into an unavailable `/v1/actions/:id` dossier.
+
 The landing specimen has four direct chapter controls and retains Before/After
 shortcuts. Every control is present on mobile and works without motion. The
 illustration makes no mutation requests. Raw balance stays 10; after the 4:1
@@ -105,3 +112,9 @@ http://localhost:${CORPSHIFT_PORT_API:-4000}. The normal default remains port 40
 Set CORPSHIFT_API for demo:check and E2E_BASE_URL for Playwright; run these mutation
 suites sequentially against the isolated stack. Never target the public sandbox.
 Validation builds must not use the directory serving the hosted public assets.
+For recorded motion review, build the committed source in that worktree and serve
+its `apps/web/dist` through `scripts/serve-public.mjs` with the isolated API port.
+Run `scripts/record-motion.mjs` with `MOTION_RECORD_BASE_URL` set to this loopback
+origin. The recorder requires `/build-stamp.json` and writes the served source SHA
+and build time into `recording-manifest.json` beside normal-motion videos, beat
+frames, and reduced-motion checks.

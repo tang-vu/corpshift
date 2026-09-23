@@ -4,6 +4,7 @@ import { api, ApiError, type DemoState, type DemoStepResult, type PolicyResult }
 import { Card, Empty, PageIntro, Partition, HexLink, StateBadge, Stat } from "../components/ui";
 import { fmt18, fmtHf, fmtMult, fmtPrice8, fmtUsd6, shortHex, timeUntil } from "../lib/format";
 import { ComparisonInstrument } from "../components/ComparisonInstrument";
+import { DemoEvidenceAssembly } from "../components/DemoEvidenceAssembly";
 
 const STEPS = [
   {
@@ -535,6 +536,7 @@ export function Lab() {
         </div>
       </div>
       <PairedMeasurements state={state} history={history} log={log} />
+      <DemoEvidenceAssembly state={state} log={log} />
       {/* asset state strip */}
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-edge pb-4">

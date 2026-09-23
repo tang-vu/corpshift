@@ -140,6 +140,15 @@ export function Landing() {
         <div className="mechanism-flow">
           {FLOW.map(([title, description, detail], i) => (
             <div className="mechanism-step" key={title}>
+              {i === 0 && (
+                <div
+                  className="mechanism-action-slip"
+                  aria-label="The same 4:1 action continues from the specimen"
+                >
+                  <span>4:1 ACTION</span>
+                  <i />
+                </div>
+              )}
               <div className="step-index">
                 <span>0{i + 1}</span>
                 <span aria-hidden="true">{i === 3 ? "↗" : "→"}</span>
