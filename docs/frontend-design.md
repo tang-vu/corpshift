@@ -30,6 +30,35 @@ imagery is copied. Bearplus and its CargoKite project informed the composition
 study: a domain object, generous hierarchy and explicit explanatory chapters.
 Reference review: https://bear.plus/ and https://cargokite.com/.
 
+The continuity specimen now uses a lit Three.js assembly of ten persistent raw
+holders inside one fixed-value frame. A single GSAP clock drives its approach,
+action-slip dock, partition, observed/verified rail divergence, reconciliation
+and carry. Scroll and chapter controls seek the same clock; reduced motion or an
+unavailable renderer uses the stepped ten-holder illustration. The canvas
+renders on demand and pauses while offscreen. Neither path writes to the API.
+
+Protocol Lab's comparison instrument animates an event branch and exact API
+observations. It can interpolate geometry between values captured in the same
+page session, but never manufactures financial observations. On external run
+changes or progress, history is cleared with execution evidence. During
+ADJUSTING, the operation labels come from fresh policy endpoint reads; the
+reviewed default allows PRICE_READ and blocks the other eight operations.
+Liquidation outcome annotations require the page-session liquidation response.
+
+The ledger uses a browser view transition when available to carry a selected
+action ID into its dossier. The dossier orders actual indexed events by block
+and log index and marks missing indexed evidence. Full raw JSON, ABI bytes and
+copyable identifiers remain below the animation. A production frontend build
+emits `/build-stamp.json` with its source SHA and build time; this stamp is
+separate from the contract deployment manifest.
+
+The Lab's onchain demo action may have no canonical row in the indexer. Its
+comparison link therefore opens a page-session evidence assembly in Lab, with
+the captured attestation receipt, observed and verified factors, and any
+indexed events returned for that action. Absent issuer source facts, canonical
+payload bytes, or indexed events are marked as gaps; the UI does not turn a
+demo action ID into an unavailable `/v1/actions/:id` dossier.
+
 The landing specimen has four direct chapter controls and retains Before/After
 shortcuts. Every control is present on mobile and works without motion. The
 illustration makes no mutation requests. Raw balance stays 10; after the 4:1
@@ -83,3 +112,9 @@ http://localhost:${CORPSHIFT_PORT_API:-4000}. The normal default remains port 40
 Set CORPSHIFT_API for demo:check and E2E_BASE_URL for Playwright; run these mutation
 suites sequentially against the isolated stack. Never target the public sandbox.
 Validation builds must not use the directory serving the hosted public assets.
+For recorded motion review, build the committed source in that worktree and serve
+its `apps/web/dist` through `scripts/serve-public.mjs` with the isolated API port.
+Run `scripts/record-motion.mjs` with `MOTION_RECORD_BASE_URL` set to this loopback
+origin. The recorder requires `/build-stamp.json` and writes the served source SHA
+and build time into `recording-manifest.json` beside normal-motion videos, beat
+frames, and reduced-motion checks.

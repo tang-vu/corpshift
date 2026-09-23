@@ -10,6 +10,9 @@ import { ActionDetail } from "./pages/ActionDetail";
 import { Lab } from "./pages/Lab";
 import { Policy } from "./pages/Policy";
 
+declare const __FRONTEND_BUILD_SHA__: string;
+declare const __FRONTEND_BUILD_TIME__: string;
+
 const NAV = [
   { to: "/", label: "Overview", end: true },
   { to: "/assets", label: "Assets" },
@@ -106,6 +109,9 @@ export function App() {
 
       <footer className="app-footer">
         <strong>CorpShift.</strong>
+        <span title={`Frontend built ${__FRONTEND_BUILD_TIME__}`}>
+          FRONTEND {import.meta.env.DEV ? "LOCAL" : __FRONTEND_BUILD_SHA__.slice(0, 12)}
+        </span>
         <span>CORPORATE ACTIONS. ECONOMIC CONTINUITY.</span>
         <span>BUILT FOR ROBINHOOD CHAIN ↗</span>
       </footer>

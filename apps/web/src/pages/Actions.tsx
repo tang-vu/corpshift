@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { flushSync } from "react-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api, type ActionItem } from "../lib/api";
 import { Card, Empty, PageIntro, StateBadge, TypeBadge, TrustBadge } from "../components/ui";
 import { fmtTs, shortHex, timeUntil } from "../lib/format";
 
 export function Actions() {
+  const navigate = useNavigate();
   const [rows, setRows] = useState<ActionItem[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -51,6 +53,23 @@ export function Actions() {
                     <Link
                       to={`/actions/${a.actionId}`}
                       className="font-mono text-cyan hover:underline"
+                      onClick={(event) => {
+                        if (
+                          event.button !== 0 ||
+                          event.metaKey ||
+                          event.ctrlKey ||
+                          event.shiftKey ||
+                          event.altKey ||
+                          !document.startViewTransition ||
+                          matchMedia("(prefers-reduced-motion: reduce)").matches
+                        )
+                          return;
+                        event.preventDefault();
+                        event.currentTarget.style.viewTransitionName = "selected-action";
+                        void document.startViewTransition(() =>
+                          flushSync(() => navigate(`/actions/${a.actionId}`)),
+                        );
+                      }}
                     >
                       {shortHex(a.actionId)}
                     </Link>

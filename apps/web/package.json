@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@corpshift/shared": "workspace:*",
+    "gsap": "3.15.0",
+    "three": "0.186.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"
@@ -20,6 +22,7 @@
     "@tailwindcss/vite": "^4.1.4",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/three": "0.186.0",
     "@vitejs/plugin-react": "^4.3.4",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.9.2",
