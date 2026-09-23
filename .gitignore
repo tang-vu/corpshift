@@ -33,6 +33,7 @@ playwright/.cache/
 # Logs
 *.log
 logs/
+__pycache__/
 
 # OS / editor
 .idea/
