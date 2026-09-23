@@ -1,0 +1,31 @@
+1
+00:00:00,000 --> 00:00:08,000
+A stock split should never liquidate a healthy borrower. But when lending protocols read raw token balances, it can.
+
+2
+00:00:08,350 --> 00:00:22,030
+Meet CorpShift: the corporate action runtime for onchain finance. In our live Protocol Lab, two vaults begin with the same position: one thousand dollars of collateral, four hundred dollars of debt, and a health factor of two.
+
+3
+00:00:22,380 --> 00:00:29,580
+We attest a four for one split. Before execution, CorpShift blocks new borrowing while the action is pending.
+
+4
+00:00:29,930 --> 00:00:36,970
+Then the token multiplier moves to four, and the per share price falls from one hundred dollars to twenty five.
+
+5
+00:00:37,320 --> 00:00:42,440
+The naive vault now sees only two hundred fifty dollars of collateral and liquidates.
+
+6
+00:00:42,790 --> 00:00:50,870
+The CorpShift aware vault reads forty economic units, keeps the correct one thousand dollar value, and protects the position.
+
+7
+00:00:51,220 --> 00:00:58,740
+Same user. Same chain. Same event. Two radically different outcomes. Every accepted write has a transaction receipt.
+
+8
+00:00:59,090 --> 00:01:08,610
+Every rejected operation is checked against the expected contract error. CorpShift keeps stock token finance economically correct when the underlying stock changes.

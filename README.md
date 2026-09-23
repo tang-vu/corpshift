@@ -2,6 +2,8 @@
 
 Public demo: **https://corpshift.tangvu.dev** — repeatable Anvil lab and separately linked Robinhood testnet deployment evidence.
 
+Watch the [70-second narrated demo](submission/demo-video.mp4) with the owner's VoiceTake voice and optional English captions. The [video notes](submission/demo-video.md) describe the source captures and rebuild steps.
+
 **The corporate-action runtime for onchain finance.**
 
 Stock Tokens are programmable — but corporate actions change their *economic
