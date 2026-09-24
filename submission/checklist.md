@@ -18,6 +18,7 @@
 
 - [x] Robinhood testnet deployment: 10 contracts, 17 successful receipts; see deployments/46630-evidence.json
 - [x] Public demo URL: https://corpshift.tangvu.dev (Anvil lab + separate testnet deployment proof)
+- [x] Narrated edited demo published: https://youtu.be/93TRPzhDg-M
 - [ ] Recorded walkthrough
 - [ ] Recheck event terms and submission deadline
 
