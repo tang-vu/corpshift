@@ -1,6 +1,6 @@
 # CorpShift demo video
 
-The [70-second narrated demo](demo-video.mp4) shows the split scenario with the owner's VoiceTake personal voice profile. [English captions](demo-video.srt) are also embedded as an optional subtitle track in the MP4.
+The [70-second narrated demo on YouTube](https://youtu.be/93TRPzhDg-M) shows the split scenario with the owner's VoiceTake personal voice profile. The [MP4](demo-video.mp4) and [English captions](demo-video.srt) are also available here; captions are embedded as an optional subtitle track in the MP4.
 
 The on-screen Protocol Lab panels come from the reviewed local scenario captures in `docs/visual-review/stages/`. The video is an edited explanation of those captured states; its narration describes the actual contract and API behavior documented in [`demo-script.md`](demo-script.md). It does not represent a continuous live browser recording.
 
